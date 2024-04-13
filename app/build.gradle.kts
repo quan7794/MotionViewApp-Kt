@@ -34,6 +34,9 @@ android {
 
 dependencies {
 
+    // color picker
+    implementation ("com.github.QuadFlask:colorpicker:0.0.15")
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
