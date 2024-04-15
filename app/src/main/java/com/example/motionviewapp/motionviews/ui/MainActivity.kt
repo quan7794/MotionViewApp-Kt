@@ -12,22 +12,28 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.motionviewapp.R
 import com.example.motionviewapp.motionviews.ui.TextEditorDialogFragment.OnTextLayerCallback
 import com.example.motionviewapp.motionviews.ui.adapter.FontsAdapter
-import com.example.motionviewapp.motionviews.utils.FontProvider
-import com.example.motionviewapp.motionviews.viewmodel.Font
-import com.example.motionviewapp.motionviews.viewmodel.Layer
-import com.example.motionviewapp.motionviews.viewmodel.TextLayer
+import com.example.motionviewapp.utils.FontProvider
+import com.example.motionviewapp.motionviews.model.Font
+import com.example.motionviewapp.motionviews.model.Layer
+import com.example.motionviewapp.motionviews.model.TextLayer
 import com.example.motionviewapp.motionviews.widget.MotionView
 import com.example.motionviewapp.motionviews.widget.MotionView.MotionViewCallback
 import com.example.motionviewapp.motionviews.widget.entity.ImageEntity
 import com.example.motionviewapp.motionviews.widget.entity.MotionEntity
-import com.example.motionviewapp.motionviews.widget.entity.TextEntity
 import com.flask.colorpicker.ColorPickerView
 import com.flask.colorpicker.builder.ColorPickerDialogBuilder
+import com.example.motionviewapp.motionviews.widget.entity.TextEntity
 
 class MainActivity : AppCompatActivity(), OnTextLayerCallback {
     protected var motionView: MotionView? = null
     protected var textEntityEditPanel: View? = null
     private val motionViewCallback: MotionViewCallback = object : MotionViewCallback {
+        override fun onTouch() {
+        }
+
+        override fun onRelease() {
+        }
+
         override fun onEntitySelected(entity: MotionEntity?) {
             if (entity is TextEntity) {
                 textEntityEditPanel!!.visibility = View.VISIBLE
@@ -36,8 +42,20 @@ class MainActivity : AppCompatActivity(), OnTextLayerCallback {
             }
         }
 
+        override fun onEntityDeleted() {
+        }
+
+        override fun onEntityAdded() {
+        }
+
+        override fun onEntityReselected() {
+        }
+
         override fun onEntityDoubleTap(entity: MotionEntity) {
             startTextEntityEditing()
+        }
+
+        override fun onEntityUnselected() {
         }
     }
     private var fontProvider: FontProvider? = null
@@ -59,10 +77,10 @@ class MainActivity : AppCompatActivity(), OnTextLayerCallback {
     private fun addSticker(stickerResId: Int) {
         motionView!!.post {
             val layer = Layer()
-            val pica = BitmapFactory.decodeResource(resources, stickerResId)
+            val bitmap = BitmapFactory.decodeResource(resources, stickerResId)
 
-            val entity = ImageEntity(layer, pica, motionView!!.width, motionView!!.height)
-            motionView!!.addEntityAndPosition(entity)
+            val entity = ImageEntity(layer, bitmap, stickerResId, motionView!!.width, motionView!!.height)
+            motionView!!.addEntity(entity, MotionView.AddAction.TO_CENTER)
         }
     }
 
@@ -77,7 +95,7 @@ class MainActivity : AppCompatActivity(), OnTextLayerCallback {
     private fun increaseTextEntitySize() {
         val textEntity = currentTextEntity()
         if (textEntity != null) {
-            textEntity.layer.font.increaseSize(TextLayer.Limits.FONT_SIZE_STEP)
+            textEntity.textLayer.font.increaseSize(TextLayer.Limits.FONT_SIZE_STEP)
             textEntity.updateEntity()
             motionView!!.invalidate()
         }
@@ -86,7 +104,7 @@ class MainActivity : AppCompatActivity(), OnTextLayerCallback {
     private fun decreaseTextEntitySize() {
         val textEntity = currentTextEntity()
         if (textEntity != null) {
-            textEntity.layer.font.decreaseSize(TextLayer.Limits.FONT_SIZE_STEP)
+            textEntity.textLayer.font.decreaseSize(TextLayer.Limits.FONT_SIZE_STEP)
             textEntity.updateEntity()
             motionView!!.invalidate()
         }
@@ -95,7 +113,7 @@ class MainActivity : AppCompatActivity(), OnTextLayerCallback {
     private fun changeTextEntityColor() {
         val textEntity = currentTextEntity() ?: return
 
-        val initialColor = textEntity.layer.font.color
+        val initialColor = textEntity.textLayer.font.color
 
         ColorPickerDialogBuilder
             .with(this@MainActivity)
@@ -106,7 +124,7 @@ class MainActivity : AppCompatActivity(), OnTextLayerCallback {
             .setPositiveButton(R.string.ok) { dialog: DialogInterface?, selectedColor: Int, allColors: Array<Int?>? ->
                 val textEntity1 = currentTextEntity()
                 if (textEntity1 != null) {
-                    textEntity1.layer.font.color = selectedColor
+                    textEntity1.textLayer.font.color = selectedColor
                     textEntity1.updateEntity()
                     motionView!!.invalidate()
                 }
@@ -124,7 +142,7 @@ class MainActivity : AppCompatActivity(), OnTextLayerCallback {
             .setAdapter(fontsAdapter) { dialogInterface: DialogInterface?, which: Int ->
                 val textEntity = currentTextEntity()
                 if (textEntity != null) {
-                    textEntity.layer.font.typeface = fonts[which]
+                    textEntity.textLayer.font.typefaceName = fonts[which]
                     textEntity.updateEntity()
                     motionView!!.invalidate()
                 }
@@ -135,7 +153,7 @@ class MainActivity : AppCompatActivity(), OnTextLayerCallback {
     private fun startTextEntityEditing() {
         val textEntity = currentTextEntity()
         if (textEntity != null) {
-            val fragment = TextEditorDialogFragment.getInstance(textEntity.layer.text)
+            val fragment = TextEditorDialogFragment.getInstance(textEntity.textLayer.text)
             fragment.show(supportFragmentManager, TextEditorDialogFragment::class.java.name)
         }
     }
@@ -167,11 +185,8 @@ class MainActivity : AppCompatActivity(), OnTextLayerCallback {
 
     protected fun addTextSticker() {
         val textLayer = createTextLayer()
-        val textEntity = TextEntity(
-            textLayer, motionView!!.width,
-            motionView!!.height, fontProvider!!
-        )
-        motionView!!.addEntityAndPosition(textEntity)
+        val textEntity = TextEntity(textLayer, motionView!!.width, motionView!!.height, fontProvider!!)
+        motionView!!.addEntity(textEntity, MotionView.AddAction.TO_CENTER)
 
         // move text sticker up so that its not hidden under keyboard
         val center = textEntity.absoluteCenter()
@@ -188,9 +203,9 @@ class MainActivity : AppCompatActivity(), OnTextLayerCallback {
         val textLayer = TextLayer()
         val font = Font()
 
-        font.color = TextLayer.Limits.INITIAL_FONT_COLOR
-        font.size = TextLayer.Limits.INITIAL_FONT_SIZE
-        font.typeface = fontProvider!!.defaultFontName
+        font.color = Font.DEFAULT_TEXT_COLOR
+        font.size = Font.INITIAL_FONT_SIZE
+        font.typefaceName = fontProvider!!.defaultFontName
 
         textLayer.font = font
 
@@ -218,7 +233,7 @@ class MainActivity : AppCompatActivity(), OnTextLayerCallback {
     override fun textChanged(text: String) {
         val textEntity = currentTextEntity()
         if (textEntity != null) {
-            val textLayer = textEntity.layer
+            val textLayer = textEntity.textLayer
             if (text != textLayer.text) {
                 textLayer.text = text
                 textEntity.updateEntity()

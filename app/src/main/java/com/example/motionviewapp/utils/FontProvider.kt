@@ -1,83 +1,63 @@
-package com.example.motionviewapp.motionviews.utils;
+package com.example.motionviewapp.utils
 
-
-import android.content.res.Resources;
-import android.graphics.Typeface;
-import android.text.TextUtils;
-
-import androidx.annotation.Nullable;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import android.content.res.Resources
+import android.graphics.Typeface
+import android.text.TextUtils
+import android.util.TypedValue
 
 /**
  * extracting Typeface from Assets is a heavy operation,
  * we want to make sure that we cache the typefaces for reuse
  */
-public class FontProvider {
-
-    private static final String DEFAULT_FONT_NAME = "Helvetica";
-
-    private final Map<String, Typeface> typefaces;
-    private final Map<String, String> fontNameToTypefaceFile;
-    private final Resources resources;
-    private final List<String> fontNames;
-
-    public FontProvider(Resources resources) {
-        this.resources = resources;
-
-        typefaces = new HashMap<>();
-
-        // populate fonts
-        fontNameToTypefaceFile = new HashMap<>();
-        fontNameToTypefaceFile.put("Arial", "Arial.ttf");
-        fontNameToTypefaceFile.put("Eutemia", "Eutemia.ttf");
-        fontNameToTypefaceFile.put("GREENPIL", "GREENPIL.ttf");
-        fontNameToTypefaceFile.put("Grinched", "Grinched.ttf");
-        fontNameToTypefaceFile.put("Helvetica", "Helvetica.ttf");
-        fontNameToTypefaceFile.put("Libertango", "Libertango.ttf");
-        fontNameToTypefaceFile.put("Metal Macabre", "MetalMacabre.ttf");
-        fontNameToTypefaceFile.put("Parry Hotter", "ParryHotter.ttf");
-        fontNameToTypefaceFile.put("SCRIPTIN", "SCRIPTIN.ttf");
-        fontNameToTypefaceFile.put("The Godfather v2", "TheGodfather_v2.ttf");
-        fontNameToTypefaceFile.put("Aka Dora", "akaDora.ttf");
-        fontNameToTypefaceFile.put("Waltograph", "waltograph42.ttf");
-
-        fontNames = new ArrayList<>(fontNameToTypefaceFile.keySet());
-    }
+class FontProvider(private val resources: Resources) {
+    val defaultFontName: String  = "Helvetica"
+    private val typefaces: MutableMap<String?, Typeface?>
+    private val fontNameToTypefaceFile: MutableMap<String?, String>
 
     /**
-     * @param typefaceName must be one of the font names provided from {@link FontProvider#getFontNames()}
-     * @return the Typeface associated with {@code typefaceName}, or {@link Typeface#DEFAULT} otherwise
-     */
-    public Typeface getTypeface(@Nullable String typefaceName) {
-        if (TextUtils.isEmpty(typefaceName)) {
-            return Typeface.DEFAULT;
-        } else {
-            //noinspection Java8CollectionsApi
-            if (typefaces.get(typefaceName) == null) {
-                typefaces.put(typefaceName,
-                        Typeface.createFromAsset(resources.getAssets(), "fonts/" + fontNameToTypefaceFile.get(typefaceName)));
-            }
-            return typefaces.get(typefaceName);
-        }
-    }
-
-    /**
-     * use {@link FontProvider#getTypeface(String) to get Typeface for the font name}
+     * use [to get Typeface for the font name][FontProvider.getTypeface]
      *
      * @return list of available font names
      */
-    public List<String> getFontNames() {
-        return fontNames;
+    val fontNames: List<String?>
+
+    init {
+        typefaces = HashMap()
+
+        // populate fonts
+        fontNameToTypefaceFile = HashMap()
+        fontNameToTypefaceFile["Arial"] = "Arial.ttf"
+        fontNameToTypefaceFile["Eutemia"] = "Eutemia.ttf"
+        fontNameToTypefaceFile["GREENPIL"] = "GREENPIL.ttf"
+        fontNameToTypefaceFile["Grinched"] = "Grinched.ttf"
+        fontNameToTypefaceFile["Helvetica"] = "Helvetica.ttf"
+        fontNameToTypefaceFile["Libertango"] = "Libertango.ttf"
+        fontNameToTypefaceFile["Metal Macabre"] = "MetalMacabre.ttf"
+        fontNameToTypefaceFile["Parry Hotter"] = "ParryHotter.ttf"
+        fontNameToTypefaceFile["SCRIPTIN"] = "SCRIPTIN.ttf"
+        fontNameToTypefaceFile["The Godfather v2"] = "TheGodfather_v2.ttf"
+        fontNameToTypefaceFile["Aka Dora"] = "akaDora.ttf"
+        fontNameToTypefaceFile["Waltograph"] = "waltograph42.ttf"
+        fontNames = ArrayList(fontNameToTypefaceFile.keys)
     }
 
     /**
-     * @return Default Font Name - <b>Helvetica</b>
+     * @param typefaceName must be one of the font names provided from [FontProvider.getFontNames]
+     * @return the Typeface associated with `typefaceName`, or [Typeface.DEFAULT] otherwise
      */
-    public String getDefaultFontName() {
-        return DEFAULT_FONT_NAME;
+    fun getTypeface(typefaceName: String?): Typeface? {
+        return if (TextUtils.isEmpty(typefaceName)) {
+            Typeface.DEFAULT
+        } else {
+            if (typefaces[typefaceName] == null) {
+                typefaces[typefaceName] = Typeface.createFromAsset(resources.assets, "fonts/" + fontNameToTypefaceFile[typefaceName])
+            }
+            typefaces[typefaceName]
+        }
+    }
+
+
+    fun spToPx(sp: Float): Float {
+        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, sp, resources.displayMetrics)
     }
 }

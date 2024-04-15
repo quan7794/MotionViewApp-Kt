@@ -7,7 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.TextView
-import com.example.motionviewapp.motionviews.utils.FontProvider
+import com.example.motionviewapp.utils.FontProvider
 
 class FontsAdapter(context: Context?, fontNames: List<String?>?, private val fontProvider: FontProvider) : ArrayAdapter<String?>(
     context!!, 0, fontNames!!

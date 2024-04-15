@@ -21,6 +21,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "MotionViewApp"
+rootProject.name = "BoardEditor"
 include(":app")
  
