@@ -12,8 +12,8 @@ class ImageEntity(
     val resId: Int,
     canvasWidth: Int,
     canvasHeight: Int,
-    private val initialWidth: Int = canvasWidth,
-    private val initialHeight: Int = canvasHeight,
+    private val initialWidth: Int = canvasWidth/3,
+    private val initialHeight: Int = canvasHeight/3,
 ) : MotionEntity(layer, canvasWidth, canvasHeight) {
 
     init {

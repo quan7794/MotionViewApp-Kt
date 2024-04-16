@@ -17,7 +17,6 @@ import android.widget.FrameLayout
 import androidx.core.view.GestureDetectorCompat
 import com.example.motionviewapp.R
 import com.example.motionviewapp.motionviews.model.EditorInfo
-import com.example.motionviewapp.motionviews.model.Font
 import com.example.motionviewapp.motionviews.model.Layer
 import com.example.motionviewapp.motionviews.widget.entity.IconEntity
 import com.example.motionviewapp.motionviews.widget.entity.ImageEntity
@@ -202,10 +201,10 @@ class MotionView : FrameLayout {
                 tempEntity.drawForSave(canvas, editorInfo)
 //                tempEntity.release()
             } else {
-                var imageEntity = entities[i].clone() as ImageEntity
-                imageEntity.matrix.setValues(scaledMatrixInfo)
-                imageEntity = redrawImageEntity(imageEntity)
-                imageEntity.drawForSave(canvas, editorInfo)
+                var saveImEntity = entities[i].clone() as ImageEntity
+                saveImEntity.matrix.setValues(scaledMatrixInfo)
+//                saveImEntity = redrawImageEntity(imageEntity) //todo: create high resolution later
+                saveImEntity.drawForSave(canvas, editorInfo)
                 //               imageEntity.release()
             }
         }
@@ -276,7 +275,7 @@ class MotionView : FrameLayout {
         val matrixInfo = FloatArray(10)
 
         motionEntity.matrix.getValues(matrixInfo)
-        for (i in 0 until matrixInfo.size) {
+        for (i in matrixInfo.indices) {
             if (i < 6) {
                 matrixInfo[i] *= ratio
             }
@@ -494,11 +493,11 @@ class MotionView : FrameLayout {
     }
 
     private fun getRedrawTextEntity(currTextEntity: TextEntity): TextEntity {
-        currTextEntity.textLayer.apply {
-            font.size = font.initialSize * scale / initialScale
-            // Limit text font size when save image
-            if (font.size > Font.MAX_FONT_SIZE_FOR_SAVE) font.size = Font.MAX_FONT_SIZE_FOR_SAVE
-        }
+//        currTextEntity.textLayer.apply {
+//            font.size = font.initialSize * scale / initialScale
+//            // Limit text font size when save image
+//            if (font.size > Font.MAX_FONT_SIZE_FOR_SAVE) font.size = Font.MAX_FONT_SIZE_FOR_SAVE
+//        }
 
         val newTextEntity = currTextEntity.clone() as TextEntity
         newTextEntity.moveCenterTo(currTextEntity.currCenter)

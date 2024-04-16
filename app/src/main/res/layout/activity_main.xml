@@ -1,63 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/activity_main"
-    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent" >
+    android:layout_height="match_parent">
 
     <com.example.motionviewapp.motionviews.widget.MotionView
         android:id="@+id/main_motion_view"
         android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintDimensionRatio="16:9"
+        android:layout_marginTop="80dp"
         android:background="@color/white"
-        android:layout_height="match_parent" />
+        android:elevation="11dp"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <LinearLayout
         android:id="@+id/main_motion_text_entity_edit_panel"
-        android:orientation="horizontal"
-        android:background="@color/white"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toTopOf="@+id/main_motion_view">
 
         <ImageButton
             android:id="@+id/text_entity_font_size_decrease"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:src="@drawable/ic_neg_1"
-            />
+            android:src="@drawable/ic_neg_1" />
 
         <ImageButton
             android:id="@+id/text_entity_font_size_increase"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:src="@drawable/ic_plus_1"
-            />
+            android:src="@drawable/ic_plus_1" />
 
         <ImageButton
             android:id="@+id/text_entity_color_change"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:src="@drawable/ic_format_color_text"
-            />
+            android:src="@drawable/ic_format_color_text" />
 
         <ImageButton
             android:id="@+id/text_entity_font_change"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:src="@drawable/ic_text_fields"
-            />
+            android:src="@drawable/ic_text_fields" />
 
         <ImageButton
             android:id="@+id/text_entity_edit"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:src="@drawable/ic_mode_edit"
-            />
+            android:src="@drawable/ic_mode_edit" />
 
     </LinearLayout>
 
-</RelativeLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

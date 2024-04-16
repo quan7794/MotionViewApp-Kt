@@ -18,7 +18,12 @@ import androidx.emoji2.text.EmojiSpan
 import com.example.motionviewapp.motionviews.model.TextLayer
 import com.example.motionviewapp.utils.FontProvider
 
-class TextEntity(layer: TextLayer, canvasWidth: Int, canvasHeight: Int, private val fontProvider: FontProvider) : MotionEntity(layer, canvasWidth, canvasHeight) {
+class TextEntity(
+    layer: TextLayer,
+    canvasWidth: Int,
+    canvasHeight: Int,
+    private val fontProvider: FontProvider
+) : MotionEntity(layer, canvasWidth, canvasHeight) {
 
     private val textPaint: TextPaint = TextPaint(Paint.ANTI_ALIAS_FLAG)
     private var bitmap: Bitmap? = null

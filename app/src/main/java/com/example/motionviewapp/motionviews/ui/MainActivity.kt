@@ -2,11 +2,13 @@ package com.example.motionviewapp.motionviews.ui
 
 import android.content.DialogInterface
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.motionviewapp.R
@@ -23,6 +25,8 @@ import com.example.motionviewapp.motionviews.widget.entity.MotionEntity
 import com.flask.colorpicker.ColorPickerView
 import com.flask.colorpicker.builder.ColorPickerDialogBuilder
 import com.example.motionviewapp.motionviews.widget.entity.TextEntity
+import java.io.File
+import java.io.FileOutputStream
 
 class MainActivity : AppCompatActivity(), OnTextLayerCallback {
     protected var motionView: MotionView? = null
@@ -173,14 +177,30 @@ class MainActivity : AppCompatActivity(), OnTextLayerCallback {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == R.id.main_add_sticker) {
-            val intent = Intent(this, StickerSelectActivity::class.java)
-            startActivityForResult(intent, SELECT_STICKER_REQUEST_CODE)
-            return true
-        } else if (item.itemId == R.id.main_add_text) {
-            addTextSticker()
+        when (item.itemId) {
+            R.id.main_add_sticker -> {
+                val intent = Intent(this, StickerSelectActivity::class.java)
+                startActivityForResult(intent, SELECT_STICKER_REQUEST_CODE)
+                return true
+            }
+
+            R.id.main_add_text -> addTextSticker()
+            R.id.main_save -> saveImage()
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    private fun saveImage() {
+        val rootBitmap = Bitmap.createBitmap(3840, 2160, Bitmap.Config.ARGB_8888)
+        val outputBm = motionView?.getFinalBitmap(rootBitmap)
+
+        val file = File(cacheDir, "out.jpg")
+        try {
+            FileOutputStream(file).use { outputBm?.compress(Bitmap.CompressFormat.PNG, 100, it) }
+            Toast.makeText(this, "Done: ${file.path}", Toast.LENGTH_LONG).show()
+        } catch (ex: Exception) {
+            ex.printStackTrace()
+        }
     }
 
     protected fun addTextSticker() {
@@ -210,7 +230,7 @@ class MainActivity : AppCompatActivity(), OnTextLayerCallback {
         textLayer.font = font
 
 //        if (BuildConfig.DEBUG) {
-            textLayer.text = "Hello, world :))"
+//            textLayer.text = "Hello, world :))"
 //        }
 
         return textLayer

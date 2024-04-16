@@ -13,8 +13,8 @@ import com.example.motionviewapp.utils.MathUtils
 
 abstract class MotionEntity(
     open var layer: Layer,
-    protected var canvasWidth: Int,
-    protected var canvasHeight: Int
+    protected open var canvasWidth: Int,
+    protected open var canvasHeight: Int
 ) {
     @NonNull var matrix = Matrix() // Apply to motion view
     private var orgPhotoMatrix = Matrix() // Apply to origin photo
