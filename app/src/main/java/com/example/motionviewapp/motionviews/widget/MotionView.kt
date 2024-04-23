@@ -33,6 +33,7 @@ import com.example.motionviewapp.utils.MathUtils.checkIntersection
 import com.example.motionviewapp.utils.MathUtils.checkValidMovement
 import com.example.motionviewapp.utils.MathUtils.convertToPositivePoint
 import com.example.motionviewapp.motionviews.widget.entity.TextEntity
+import kotlin.math.abs
 
 class MotionView : FrameLayout {
 
@@ -52,16 +53,16 @@ class MotionView : FrameLayout {
     }
 
     constructor(
-            context: Context,
-            attrs: AttributeSet?
+        context: Context,
+        attrs: AttributeSet?
     ) : super(context, attrs) {
         init(context)
     }
 
     constructor(
-            context: Context,
-            attrs: AttributeSet?,
-            defStyleAttr: Int
+        context: Context,
+        attrs: AttributeSet?,
+        defStyleAttr: Int
     ) : super(context, attrs, defStyleAttr) {
         init(context)
     }
@@ -87,7 +88,7 @@ class MotionView : FrameLayout {
     override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
         return when (editorInfo.editMode) {
             EditMode.CROP -> false // Pass touch event to child views
-            EditMode.DECOR -> true // Handle touch event
+            EditMode.CONTENT_EDIT -> true // Handle touch event
         }
     }
 
@@ -96,16 +97,28 @@ class MotionView : FrameLayout {
         motionViewCallback = callback
     }
 
-    fun addEntity(entity: MotionEntity, action: AddAction) {
+    fun addEntity(entity: MotionEntity, action: AddAction = AddAction.TO_POSITION) {
         initEntityBorderAndIconBackground(entity)
         entities.add(entity)
         when (action) {
+            AddAction.TO_POSITION -> {
+//                updateUI()
+//                val centerX = entity.absoluteCenterX() / width
+//                val centerY = entity.absoluteCenterY() / height
+//                val newCX = (centerX - entity.layer.x) / entity.layer.scale + entity.layer.x
+//                val newCY = (centerY - entity.layer.y) / entity.layer.scale + entity.layer.y
+//                entity.layer.x = newCX
+//                entity.layer.y = newCY
+            }
+
             AddAction.TO_CENTER -> {
                 entity.moveToCanvasCenter()
                 initTranslateAndScale(entity)
             }
+
             AddAction.EDIT_DONE -> {
             }
+
             AddAction.EDIT_CANCEL -> {
             }
         }
@@ -248,6 +261,7 @@ class MotionView : FrameLayout {
                 when (i) {
                     2, 5 -> {//abort transform X - Y
                     }
+
                     else -> {
                         newMatrixInfo[i] /= newScaleRatio
                     }
@@ -256,13 +270,11 @@ class MotionView : FrameLayout {
         }
 
         val newImageEntity = ImageEntity(
-                Layer(),
-                newBitmap,
-                imageEntity.resId,
-                this.width,
-                this.height,
-                newBitmapWidth.toInt(),
-                newBitmapHeight.toInt(),
+            Layer().apply { initialScale = 1f * newBitmapWidth / this@MotionView.width },
+            newBitmap,
+            imageEntity.resId,
+            this.width,
+            this.height,
         )
         newImageEntity.matrix.setValues(newMatrixInfo)
 
@@ -385,6 +397,7 @@ class MotionView : FrameLayout {
                     selectEntity(checkTouchEventWithEntity(it), false)
                     if (selectedEntity != null) motionViewCallback.onTouch()
                 }
+
                 MotionEvent.ACTION_DOWN -> {
                     val iconEntity: IconEntity? = findIconAtPoint(event.x, event.y)
 
@@ -393,19 +406,23 @@ class MotionView : FrameLayout {
                             toggleOneFingerRotation(true)
                             motionViewCallback.onTouch()
                         }
+
                         IconEntity.LEFT_BOTTOM -> {
                             toggleOneFingerRotation(true)
                             motionViewCallback.onTouch()
                         }
+
                         IconEntity.RIGHT_BOTTOM -> {
                             toggleOneFingerRotation(true)
                             motionViewCallback.onTouch()
                         }
                     }
                 }
+
                 MotionEvent.ACTION_MOVE -> {
                     if (selectedEntity != null) motionViewCallback.onTouch()
                 }
+
                 MotionEvent.ACTION_UP -> motionViewCallback.onRelease()
 
             }
@@ -424,6 +441,7 @@ class MotionView : FrameLayout {
                 rotateGestureDetector.entityCenterPoint = selectedEntity?.currCenter
                 setOnTouchListener(onRotateTouchListener)
             }
+
             else -> {
                 rotateGestureDetector.entityCenterPoint = null
                 setOnTouchListener(onTouchListener)
@@ -441,6 +459,7 @@ class MotionView : FrameLayout {
                     toggleOneFingerRotation(false)
                     motionViewCallback.onRelease()
                 }
+
                 MotionEvent.ACTION_POINTER_DOWN -> {
                     toggleOneFingerRotation(false)
                 }
@@ -529,7 +548,8 @@ class MotionView : FrameLayout {
             val pDy = entity.destPoints[7]
 
             if (entity.pointInLayerRect(PointF(px1, py1), editorInfo)
-                    || entity.pointInLayerRect(PointF(px2, py2), editorInfo))
+                || entity.pointInLayerRect(PointF(px2, py2), editorInfo)
+            )
                 return entity
             else {
                 val intersectionAB: PointF
@@ -560,9 +580,9 @@ class MotionView : FrameLayout {
 
                 }
                 if (checkIntersection(PointF(px1, py1), PointF(px2, py2), intersectionAB, PointF(pAx, pAy), PointF(pBx, pBy)) ||
-                        checkIntersection(PointF(px1, py1), PointF(px2, py2), intersectionCD, PointF(pDx, pDy), PointF(pCx, pCy)) ||
-                        checkIntersection(PointF(px1, py1), PointF(px2, py2), intersectionAD, PointF(pAx, pAy), PointF(pDx, pDy)) ||
-                        checkIntersection(PointF(px1, py1), PointF(px2, py2), intersectionBC, PointF(pBx, pBy), PointF(pCx, pCy))
+                    checkIntersection(PointF(px1, py1), PointF(px2, py2), intersectionCD, PointF(pDx, pDy), PointF(pCx, pCy)) ||
+                    checkIntersection(PointF(px1, py1), PointF(px2, py2), intersectionAD, PointF(pAx, pAy), PointF(pDx, pDy)) ||
+                    checkIntersection(PointF(px1, py1), PointF(px2, py2), intersectionBC, PointF(pBx, pBy), PointF(pCx, pCy))
                 ) return entity
             }
         }
@@ -680,8 +700,9 @@ class MotionView : FrameLayout {
             sumRotationDegreesDelta %= MotionEntity.INITIAL_ENTITY_DEGREES_DELTA
             selectedEntity?.let {
                 if ((it.layer.rotationInDegrees in -MotionEntity.NORMAL_DEGREES_DELTA..MotionEntity.NORMAL_DEGREES_DELTA
-                                || (it.layer.rotationInDegrees < -MotionEntity.UNUSUAL_DEGREES_DELTA || it.layer.rotationInDegrees > MotionEntity.UNUSUAL_DEGREES_DELTA))
-                        && sumRotationDegreesDelta in -MotionEntity.RANGE_ENTITY_DEGREES_DELTA..MotionEntity.RANGE_ENTITY_DEGREES_DELTA) {
+                            || (it.layer.rotationInDegrees < -MotionEntity.UNUSUAL_DEGREES_DELTA || it.layer.rotationInDegrees > MotionEntity.UNUSUAL_DEGREES_DELTA))
+                    && sumRotationDegreesDelta in -MotionEntity.RANGE_ENTITY_DEGREES_DELTA..MotionEntity.RANGE_ENTITY_DEGREES_DELTA
+                ) {
                     it.layer.resetRotationInDegrees()
                     BorderUtil.initEntityBorder(it, context, true)
                 } else {
@@ -761,11 +782,11 @@ class MotionView : FrameLayout {
     }
 
     enum class AddAction {
-        TO_CENTER, EDIT_DONE, EDIT_CANCEL
+        TO_CENTER, TO_POSITION, EDIT_DONE, EDIT_CANCEL
     }
 
     enum class EditMode {
-        CROP, DECOR
+        CROP, CONTENT_EDIT
     }
 
     interface MotionViewCallback {

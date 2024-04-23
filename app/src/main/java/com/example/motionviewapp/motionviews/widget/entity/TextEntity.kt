@@ -17,6 +17,7 @@ import androidx.emoji2.text.EmojiCompat
 import androidx.emoji2.text.EmojiSpan
 import com.example.motionviewapp.motionviews.model.TextLayer
 import com.example.motionviewapp.utils.FontProvider
+import kotlin.math.min
 
 class TextEntity(
     layer: TextLayer,
@@ -35,8 +36,8 @@ class TextEntity(
         updateEntity()
     }
 
-    override val width: Int = bitmap?.width ?: 0
-    override val height: Int = bitmap?.height ?: 0
+    override val bmWidth: Int = bitmap?.width ?: 0
+    override val bmHeight: Int = bitmap?.height ?: 0
 
     override fun drawContent(canvas: Canvas, drawingPaint: Paint?) {
         bitmap?.let { bitmap ->
@@ -135,10 +136,7 @@ class TextEntity(
         val boundsHeight = sl.height
 
         // create bitmap not smaller than TextLayer.Limits.MIN_BITMAP_HEIGHT
-        val bmpHeight = (canvasHeight * Math.max(
-            TextLayer.Limits.MIN_BITMAP_HEIGHT,
-            1.0f * boundsHeight / canvasHeight
-        )).toInt()
+        val bmpHeight = (canvasHeight * Math.max(TextLayer.Limits.MIN_BITMAP_HEIGHT, 1.0f * boundsHeight / canvasHeight)).toInt()
 
         // create bitmap where text will be drawn
         val bmp: Bitmap

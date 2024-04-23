@@ -3,8 +3,10 @@ package com.example.motionviewapp.motionviews.ui
 import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -12,25 +14,31 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.motionviewapp.R
-import com.example.motionviewapp.motionviews.ui.TextEditorDialogFragment.OnTextLayerCallback
-import com.example.motionviewapp.motionviews.ui.adapter.FontsAdapter
-import com.example.motionviewapp.utils.FontProvider
 import com.example.motionviewapp.motionviews.model.Font
 import com.example.motionviewapp.motionviews.model.Layer
 import com.example.motionviewapp.motionviews.model.TextLayer
+import com.example.motionviewapp.motionviews.model.epaper.EPDImage
+import com.example.motionviewapp.motionviews.model.epaper.EPDTemplate
+import com.example.motionviewapp.motionviews.ui.TextEditorDialogFragment.OnTextLayerCallback
+import com.example.motionviewapp.motionviews.ui.adapter.FontsAdapter
 import com.example.motionviewapp.motionviews.widget.MotionView
 import com.example.motionviewapp.motionviews.widget.MotionView.MotionViewCallback
 import com.example.motionviewapp.motionviews.widget.entity.ImageEntity
 import com.example.motionviewapp.motionviews.widget.entity.MotionEntity
+import com.example.motionviewapp.motionviews.widget.entity.TextEntity
+import com.example.motionviewapp.utils.FontProvider
 import com.flask.colorpicker.ColorPickerView
 import com.flask.colorpicker.builder.ColorPickerDialogBuilder
-import com.example.motionviewapp.motionviews.widget.entity.TextEntity
 import java.io.File
 import java.io.FileOutputStream
+import kotlin.math.abs
 
 class MainActivity : AppCompatActivity(), OnTextLayerCallback {
     protected var motionView: MotionView? = null
     protected var textEntityEditPanel: View? = null
+
+    private val epd = EPDTemplate()
+
     private val motionViewCallback: MotionViewCallback = object : MotionViewCallback {
         override fun onTouch() {
         }
@@ -73,18 +81,36 @@ class MainActivity : AppCompatActivity(), OnTextLayerCallback {
         textEntityEditPanel = findViewById(R.id.main_motion_text_entity_edit_panel)
         motionView!!.setMotionViewCallback(motionViewCallback)
 
-        addSticker(R.drawable.pikachu_2)
+        addContentImage()
 
         initTextEntitiesListeners()
     }
 
-    private fun addSticker(stickerResId: Int) {
+    private fun addContentImage(stickerResId: Int = R.drawable.pokecoin) {
+        Log.d("AAA", "aaa $epd")
         motionView!!.post {
-            val layer = Layer()
-            val bitmap = BitmapFactory.decodeResource(resources, stickerResId)
+            val image = epd.images[0]
+            val layer = layerFromEPD(epd.width, epd.height, image)
+            //            val bitmap = BitmapFactory.decodeResource(resources, R.drawable.pokecoin)
+            val bitmap = Bitmap.createBitmap(image.width.toInt(), image.height.toInt(), Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(bitmap)
+            canvas.drawColor(Color.GRAY)
+            val entity = ImageEntity(layer, bitmap, R.drawable.pokecoin, motionView!!.width, motionView!!.height)
+            motionView!!.addEntity(entity)
+        }
+    }
 
-            val entity = ImageEntity(layer, bitmap, stickerResId, motionView!!.width, motionView!!.height)
-            motionView!!.addEntity(entity, MotionView.AddAction.TO_CENTER)
+    private fun layerFromEPD(epdWidth: Float, epdHeight: Float, image: EPDImage): Layer {
+        val holyScale = minOf(epdWidth / image.width, epdHeight / image.height)
+        val wMapped = image.width * holyScale
+        val hMapped = image.height * holyScale
+        val xMapped = image.positionX - abs(image.width - wMapped) / 2
+        val yMapped = image.positionY - abs(image.height - hMapped) / 2
+
+        return Layer().apply {
+            x = xMapped / epdWidth
+            y = yMapped / epdHeight
+            scale = 1f / holyScale
         }
     }
 
@@ -229,10 +255,6 @@ class MainActivity : AppCompatActivity(), OnTextLayerCallback {
 
         textLayer.font = font
 
-//        if (BuildConfig.DEBUG) {
-//            textLayer.text = "Hello, world :))"
-//        }
-
         return textLayer
     }
 
@@ -243,7 +265,7 @@ class MainActivity : AppCompatActivity(), OnTextLayerCallback {
                 if (data != null) {
                     val stickerId = data.getIntExtra(StickerSelectActivity.EXTRA_STICKER_ID, 0)
                     if (stickerId != 0) {
-                        addSticker(stickerId)
+                        addContentImage(stickerId)
                     }
                 }
             }

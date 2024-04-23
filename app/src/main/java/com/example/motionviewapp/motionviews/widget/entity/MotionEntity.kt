@@ -5,7 +5,6 @@ import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.PointF
-import androidx.annotation.NonNull
 import com.example.motionviewapp.motionviews.model.EditorInfo
 import com.example.motionviewapp.motionviews.model.Layer
 import com.example.motionviewapp.motionviews.widget.MotionView
@@ -16,7 +15,7 @@ abstract class MotionEntity(
     protected open var canvasWidth: Int,
     protected open var canvasHeight: Int
 ) {
-    @NonNull var matrix = Matrix() // Apply to motion view
+    var matrix = Matrix() // Apply to motion view
     private var orgPhotoMatrix = Matrix() // Apply to origin photo
     protected var holyScale = 0f
     val destPoints = FloatArray(10) // x0, y0, x1, y1, x2, y2, x3, y3, x0, y0
@@ -28,11 +27,11 @@ abstract class MotionEntity(
     private var iconBackgroundPaint = Paint()
     protected var bitmapWidth = 0f
 
-    fun updateEntityForOrientationChanged(newWidth: Int, newHeight: Int) {
-        canvasWidth = newWidth
-        canvasHeight = newHeight
-        holyScale = newWidth / bitmapWidth
-    }
+//    fun updateEntityForOrientationChanged(newWidth: Int, newHeight: Int) {
+//        canvasWidth = newWidth
+//        canvasHeight = newHeight
+//        holyScale = newWidth / bitmapWidth
+//    }
 
     fun updateMatrix(editorInfo: EditorInfo) {
 
@@ -40,15 +39,15 @@ abstract class MotionEntity(
            Crop -> Update matrix match with crop rect via orgPhotoMatrix (convert coordinates) -> update layer info via matrix */
 
         when (editorInfo.editMode) {
-            MotionView.EditMode.DECOR -> {
+            MotionView.EditMode.CONTENT_EDIT -> {
                 matrix.reset()
                 orgPhotoMatrix.reset()
 
                 // Calculate layer params
                 val topLeftX = layer.x * canvasWidth
                 val topLeftY = layer.y * canvasHeight
-                val centerX = topLeftX + width * holyScale * 0.5f
-                val centerY = topLeftY + height * holyScale * 0.5f
+                val centerX = topLeftX + bmWidth * holyScale * 0.5f
+                val centerY = topLeftY + bmHeight * holyScale * 0.5f
                 currCenter = PointF(centerX, centerY)
                 var rotationInDegree = layer.rotationInDegrees
                 var scaleX = layer.scale
@@ -77,6 +76,7 @@ abstract class MotionEntity(
                 matrixInfo[5] = matrixInfo[5] + editorInfo.top
                 orgPhotoMatrix.setValues(matrixInfo)
             }
+
             MotionView.EditMode.CROP -> {
                 // Convert coordinate based on original photo to coordinate based on motion view
                 val orgPhotoMatrixInfo = FloatArray(10)
@@ -100,28 +100,28 @@ abstract class MotionEntity(
     fun updateLayer() {
         val centerPoint = centerPointOfRect(matrix)
         currCenter = centerPoint
-        val topLeftX = centerPoint.x - width * holyScale * 0.5f
-        val topLeftY = centerPoint.y - height * holyScale * 0.5f
+        val topLeftX = centerPoint.x - bmWidth * holyScale * 0.5f
+        val topLeftY = centerPoint.y - bmHeight * holyScale * 0.5f
         layer.x = topLeftX / canvasWidth
         layer.y = topLeftY / canvasHeight
-        layer.scale = 1.0f * rectWidth(matrix) / (this.width * holyScale)
+        layer.scale = 1.0f * rectWidth(matrix) / (this.bmWidth * holyScale)
     }
 
     fun absoluteCenterX(): Float {
         val topLeftX: Float = layer.x * canvasWidth
-        return topLeftX + width * holyScale * 0.5f
+        return topLeftX + bmWidth * holyScale * 0.5f
     }
 
     fun absoluteCenterY(): Float {
         val topLeftY: Float = layer.y * canvasHeight
-        return topLeftY + height * holyScale * 0.5f
+        return topLeftY + bmHeight * holyScale * 0.5f
     }
 
     fun absoluteCenter(): PointF {
         val topLeftX: Float = layer.x * canvasWidth
         val topLeftY: Float = layer.y * canvasHeight
-        val centerX = topLeftX + width * holyScale * 0.5f
-        val centerY = topLeftY + height * holyScale * 0.5f
+        val centerX = topLeftX + bmWidth * holyScale * 0.5f
+        val centerY = topLeftY + bmHeight * holyScale * 0.5f
         return PointF(centerX, centerY)
     }
 
@@ -129,12 +129,25 @@ abstract class MotionEntity(
         moveCenterTo(PointF(canvasWidth * 0.5f, canvasHeight * 0.5f))
     }
 
-    fun moveCenterTo(moveToCenter: PointF) {
+    fun moveCenterTo(newCenter: PointF) {
         val currentCenter = absoluteCenter()
         layer.postTranslate(
-                1.0f * (moveToCenter.x - currentCenter.x) / canvasWidth,
-                1.0f * (moveToCenter.y - currentCenter.y) / canvasHeight
+                1.0f * (newCenter.x - currentCenter.x) / canvasWidth,
+                1.0f * (newCenter.y - currentCenter.y) / canvasHeight
         )
+    }
+
+    fun moveTopLeftCornerTo() {
+        val centerPoint = absoluteCenter()
+        val newCenterX = bmWidth * layer.scale * 0.5f  + layer.x
+        val newCenterY = bmHeight * layer.scale * 0.5f  + layer.y
+        moveCenterTo(PointF(newCenterX, newCenterY))
+//        val centerPoint = absoluteCenter()
+//        val newTopLeftX = position.x - bmWidth * holyScale * 0.5f
+//        val newTopLeftY = position.y - bmHeight * holyScale * 0.5f
+//
+//        // Di chuyển đến vị trí mới
+//        layer.postTranslate((newTopLeftX - centerPoint.x) / canvasWidth, (newTopLeftY - centerPoint.y) / canvasHeight)
     }
 
     private val pA = PointF()
@@ -259,14 +272,17 @@ abstract class MotionEntity(
                     x = destPoints[0]
                     y = destPoints[1]
                 }
+
                 IconEntity.RIGHT_BOTTOM -> {
                     x = destPoints[4]
                     y = destPoints[5]
                 }
+
                 IconEntity.LEFT_BOTTOM -> {
                     x = destPoints[6]
                     y = destPoints[7]
                 }
+
                 IconEntity.RIGHT_TOP -> {
                     x = destPoints[2]
                     y = destPoints[3]
@@ -298,8 +314,8 @@ abstract class MotionEntity(
     }
 
     protected abstract fun drawContent(canvas: Canvas, drawingPaint: Paint?)
-    abstract val width: Int
-    abstract val height: Int
+    abstract val bmWidth: Int
+    abstract val bmHeight: Int
     abstract fun clone(): MotionEntity
     abstract fun release()
 

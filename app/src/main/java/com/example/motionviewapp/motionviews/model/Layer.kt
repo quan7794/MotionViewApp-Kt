@@ -1,11 +1,13 @@
 package com.example.motionviewapp.motionviews.model
 
+import androidx.annotation.FloatRange
+
 open class Layer(
-        var rotationInDegrees: Float = 0f,
-        var scale: Float = 0f,
-        var x: Float = 0f,
-        var y: Float = 0f,
-        var isFlipped: Boolean = false
+    @FloatRange(from = 0.0, to = 360.0) var rotationInDegrees: Float = 0f,
+    var x: Float = 0f, // top left X
+    var y: Float = 0f, // top left Y
+    var scale: Float = 1f,
+    var isFlipped: Boolean = false
 ) {
 
     open var initialScale = DEFAULT_INITIAL_SCALE
@@ -29,9 +31,7 @@ open class Layer(
         val isOutOfMaxRange = newVal > maxScale && scale > newVal
         val isOutOfMinRange = newVal < minScale && scale < newVal
         val isInNormalRange = newVal in minScale..maxScale
-        if (isOutOfMinRange
-                || isOutOfMaxRange
-                || isInNormalRange) {
+        if (isOutOfMinRange || isOutOfMaxRange || isInNormalRange) {
             scale = newVal
         }
     }
@@ -53,7 +53,7 @@ open class Layer(
     companion object {
         const val DEFAULT_MIN_SCALE = 0.1f
         const val DEFAULT_MAX_SCALE = 2f
-        const val DEFAULT_INITIAL_SCALE = 0.4f
+        const val DEFAULT_INITIAL_SCALE = 1f
         const val MAX_SCALE_RATIO_TIMES = 20
     }
 

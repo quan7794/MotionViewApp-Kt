@@ -3,37 +3,38 @@ package com.example.motionviewapp.motionviews.widget.entity
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
-import androidx.annotation.NonNull
 import com.example.motionviewapp.motionviews.model.Layer
+import kotlin.math.min
+
 
 class ImageEntity(
     layer: Layer,
-    @NonNull var bitmap: Bitmap,
+    var bitmap: Bitmap,
     val resId: Int,
     canvasWidth: Int,
     canvasHeight: Int,
-    private val initialWidth: Int = canvasWidth/3,
-    private val initialHeight: Int = canvasHeight/3,
 ) : MotionEntity(layer, canvasWidth, canvasHeight) {
 
+    override val bmWidth = bitmap.width
+    override val bmHeight = bitmap.height
+
     init {
-        bitmapWidth = bitmap.width.toFloat()
-        val height = bitmap.height.toFloat()
-        val widthAspect = 1f * canvasWidth / bitmapWidth
-
-        holyScale = widthAspect
-
-        layer.initialScale = 1f * initialWidth / canvasWidth
+//        bitmapWidth = bitmap.width.toFloat()
+//        val height = bitmap.height.toFloat()
+        val widthAspect = 1.0f * canvasWidth / bmWidth
+        val heightAspect = 1.0f * canvasHeight / bmHeight
+        holyScale = min(widthAspect.toDouble(), heightAspect.toDouble()).toFloat()
+//        layer.initialScale = 1f * initialWidth / canvasWidth
         layer.maxScale = layer.initialScale * Layer.MAX_SCALE_RATIO_TIMES
 
         srcPoints[0] = 0f
         srcPoints[1] = 0f
-        srcPoints[2] = bitmapWidth
+        srcPoints[2] = bmWidth.toFloat()
         srcPoints[3] = 0f
-        srcPoints[4] = bitmapWidth
-        srcPoints[5] = height
+        srcPoints[4] = bmWidth.toFloat()
+        srcPoints[5] = bmHeight.toFloat()
         srcPoints[6] = 0f
-        srcPoints[7] = height
+        srcPoints[7] = bmHeight.toFloat()
         srcPoints[8] = 0f
     }
 
@@ -50,13 +51,8 @@ class ImageEntity(
         }
     }
 
-    override val width: Int
-        get() = bitmap.width
-    override val height: Int
-        get() = bitmap.height
-
     override fun clone(): MotionEntity {
-        return ImageEntity(layer.clone(), bitmap, resId, canvasWidth, canvasHeight, initialWidth, initialHeight)
+        return ImageEntity(layer.clone(), bitmap, resId, canvasWidth, canvasHeight)
     }
 
     override fun release() {
