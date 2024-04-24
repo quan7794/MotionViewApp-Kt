@@ -12,6 +12,8 @@ material = "1.11.0"
 activity = "1.8.2"
 constraintlayout = "2.1.4"
 emoji2 = "1.4.0"
+timberVersion = "5.0.1"
+kotlinxCollectionsImmutable = "0.3.7"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -25,6 +27,8 @@ material = { group = "com.google.android.material", name = "material", version.r
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 androidx-emoji2 = { group = "androidx.emoji2", name = "emoji2", version.ref = "emoji2" }
+timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timberVersion" }
+kotlinx-collections-immutable = { module = "org.jetbrains.kotlinx:kotlinx-collections-immutable", version.ref = "kotlinxCollectionsImmutable" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

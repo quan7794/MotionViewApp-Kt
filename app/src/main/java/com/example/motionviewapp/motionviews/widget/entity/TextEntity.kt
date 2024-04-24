@@ -108,9 +108,9 @@ class TextEntity(
             color = textLayer.font.color
             typeface = fontProvider.getTypeface(textLayer.font.typefaceName)
 
-            if (isStringContainEmoji(textLayer.text) && textSize > MAX_SIZE_OF_EMOJI) {
-                textSize = MAX_SIZE_OF_EMOJI
-            }
+//            if (isStringContainEmoji(textLayer.text) && textSize > MAX_SIZE_OF_EMOJI) {
+//                textSize = MAX_SIZE_OF_EMOJI
+//            }
         }
     }
 

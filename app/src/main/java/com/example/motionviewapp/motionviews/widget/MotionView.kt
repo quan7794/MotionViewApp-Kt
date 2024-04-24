@@ -101,15 +101,7 @@ class MotionView : FrameLayout {
         initEntityBorderAndIconBackground(entity)
         entities.add(entity)
         when (action) {
-            AddAction.TO_POSITION -> {
-//                updateUI()
-//                val centerX = entity.absoluteCenterX() / width
-//                val centerY = entity.absoluteCenterY() / height
-//                val newCX = (centerX - entity.layer.x) / entity.layer.scale + entity.layer.x
-//                val newCY = (centerY - entity.layer.y) / entity.layer.scale + entity.layer.y
-//                entity.layer.x = newCX
-//                entity.layer.y = newCY
-            }
+            AddAction.TO_POSITION -> {}
 
             AddAction.TO_CENTER -> {
                 entity.moveToCanvasCenter()

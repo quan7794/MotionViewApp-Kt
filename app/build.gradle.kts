@@ -37,6 +37,8 @@ dependencies {
     // color picker
     implementation (libs.colorpicker)
     implementation (libs.google.gson)
+    implementation(libs.timber)
+    implementation(libs.kotlinx.collections.immutable)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
