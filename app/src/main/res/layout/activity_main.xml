@@ -16,6 +16,18 @@
         android:elevation="11dp"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <ImageButton
+        android:id="@+id/btnChangeImage"
+        android:layout_width="200dp"
+        android:layout_height="56dp"
+        android:layout_marginTop="20dp"
+        android:layout_weight="1"
+        android:scaleType="centerInside"
+        android:src="@drawable/camera"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/main_motion_view" />
+
     <LinearLayout
         android:id="@+id/main_motion_text_entity_edit_panel"
         android:layout_width="match_parent"

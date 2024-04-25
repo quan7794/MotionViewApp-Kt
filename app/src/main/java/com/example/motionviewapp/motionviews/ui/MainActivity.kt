@@ -2,6 +2,7 @@ package com.example.motionviewapp.motionviews.ui
 
 import android.content.DialogInterface
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.view.Menu
@@ -9,6 +10,11 @@ import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import com.canhub.cropper.CropImageContract
+import com.canhub.cropper.CropImageContractOptions
+import com.canhub.cropper.CropImageOptions
+import com.canhub.cropper.CropImageView
 import com.example.motionviewapp.R
 import com.example.motionviewapp.ePaper.ext.readAssets
 import com.example.motionviewapp.ePaper.parseTemplate
@@ -24,11 +30,15 @@ import com.example.motionviewapp.utils.addImageContent
 import com.example.motionviewapp.utils.addTextContent
 import com.example.motionviewapp.utils.setCurrentTextFont
 import com.example.motionviewapp.utils.currentTextEntity
+import com.example.motionviewapp.utils.getBitmap
 import com.example.motionviewapp.utils.importEdpTemplate
 import com.example.motionviewapp.utils.saveImage
 import com.example.motionviewapp.utils.setCurrentTextColor
+import com.example.motionviewapp.utils.updateSelectedContentImage
 import com.flask.colorpicker.ColorPickerView
 import com.flask.colorpicker.builder.ColorPickerDialogBuilder
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 class MainActivity : AppCompatActivity(), OnTextLayerCallback {
@@ -79,9 +89,8 @@ class MainActivity : AppCompatActivity(), OnTextLayerCallback {
         textEntityEditPanel = findViewById(R.id.main_motion_text_entity_edit_panel)
         motionView!!.setMotionViewCallback(motionViewCallback)
 
-          initEpdTemplateData()
-
-        initTextEntitiesListeners()
+        initEpdTemplateData()
+        initClickListeners()
     }
 
     private fun initEpdTemplateData() {
@@ -91,12 +100,41 @@ class MainActivity : AppCompatActivity(), OnTextLayerCallback {
         motionView!!.importEdpTemplate(epdTemplate, fontProvider!!)
     }
 
-    private fun initTextEntitiesListeners() {
+    private fun initClickListeners() {
         findViewById<View>(R.id.text_entity_font_size_increase).setOnClickListener { view: View? -> increaseTextEntitySize() }
         findViewById<View>(R.id.text_entity_font_size_decrease).setOnClickListener { view: View? -> decreaseTextEntitySize() }
         findViewById<View>(R.id.text_entity_color_change).setOnClickListener { view: View? -> changeTextEntityColor() }
         findViewById<View>(R.id.text_entity_font_change).setOnClickListener { view: View? -> changeTextEntityFont() }
         findViewById<View>(R.id.text_entity_edit).setOnClickListener { view: View? -> startTextEntityEditing() }
+        findViewById<View>(R.id.btnChangeImage).setOnClickListener { view: View? ->
+            motionView!!.selectedEntity
+            cropImage.launch(
+                CropImageContractOptions(
+                    uri = null,
+                    cropImageOptions = CropImageOptions(
+                        guidelines = CropImageView.Guidelines.ON,
+                        outputCompressFormat = Bitmap.CompressFormat.PNG,
+                        outputCompressQuality = 50,
+                        fixAspectRatio = true,
+                        aspectRatioX = motionView!!.selectedEntity!!.bmWidth,
+                        aspectRatioY = motionView!!.selectedEntity!!.bmHeight,
+                    )
+                )
+            )
+
+        }
+    }
+
+    private val cropImage = registerForActivityResult(CropImageContract()) { result ->
+        if (result.isSuccessful) {
+            // Use the returned uri.
+            val uriContent = result.uriContent
+            val uriFilePath = result.getUriFilePath(this) // optional usage
+            uriContent!!.getBitmap(contentResolver)?.let { motionView!!.updateSelectedContentImage(it) }
+        } else {
+            // An error occurred.
+            val exception = result.error
+        }
     }
 
     private fun increaseTextEntitySize() {
@@ -168,10 +206,12 @@ class MainActivity : AppCompatActivity(), OnTextLayerCallback {
                 startActivityForResult(intent, SELECT_STICKER_REQUEST_CODE)
                 return true
             }
+
             R.id.main_add_text -> {
                 motionView!!.addTextContent(fontProvider!!)
                 startTextEntityEditing()
             }
+
             R.id.main_save -> motionView?.saveImage()
         }
         return super.onOptionsItemSelected(item)

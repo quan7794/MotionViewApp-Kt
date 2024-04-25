@@ -1,5 +1,6 @@
 [versions]
 agp = "8.1.4"
+androidImageCropper = "4.5.0"
 colorpicker = "0.0.15"
 googleGson = "2.10.1"
 kotlin = "1.9.0"
@@ -16,6 +17,7 @@ timberVersion = "5.0.1"
 kotlinxCollectionsImmutable = "0.3.7"
 
 [libraries]
+android-image-cropper = { module = "com.vanniktech:android-image-cropper", version.ref = "androidImageCropper" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 colorpicker = { module = "com.github.QuadFlask:colorpicker", version.ref = "colorpicker" }
 google-gson = { module = "com.google.code.gson:gson", version.ref = "googleGson" }

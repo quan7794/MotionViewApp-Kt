@@ -33,7 +33,6 @@ import com.example.motionviewapp.utils.MathUtils.checkIntersection
 import com.example.motionviewapp.utils.MathUtils.checkValidMovement
 import com.example.motionviewapp.utils.MathUtils.convertToPositivePoint
 import com.example.motionviewapp.motionviews.widget.entity.TextEntity
-import kotlin.math.abs
 
 class MotionView : FrameLayout {
 

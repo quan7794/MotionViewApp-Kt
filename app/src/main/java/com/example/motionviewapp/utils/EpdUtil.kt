@@ -1,7 +1,10 @@
 package com.example.motionviewapp.utils
 
+import android.content.ContentResolver
 import android.graphics.Bitmap
 import android.graphics.Point
+import android.net.Uri
+import android.provider.MediaStore
 import android.widget.Toast
 import androidx.annotation.ColorInt
 import com.example.motionviewapp.R
@@ -18,6 +21,7 @@ import com.example.motionviewapp.motionviews.widget.entity.TextEntity
 import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
+import java.io.IOException
 import kotlin.math.abs
 
 class EpdUtil {
@@ -159,4 +163,23 @@ fun MotionView.currentTextEntity(): TextEntity? {
     return if (selectedEntity is TextEntity) {
         selectedEntity as TextEntity
     } else null
+}
+
+fun MotionView.updateSelectedContentImage(newImage: Bitmap) {
+    if (selectedEntity == null || selectedEntity is TextEntity) return
+    val entity = selectedEntity as ImageEntity
+    entity.bitmap = newImage
+    entity.updateMatrix(editorInfo)
+    invalidate()
+    entity.updateMatrix(editorInfo)
+
+}
+
+fun Uri.getBitmap(contentResolver: ContentResolver): Bitmap? {
+    return try {
+        MediaStore.Images.Media.getBitmap(contentResolver, this)
+    } catch (e: IOException) {
+        e.printStackTrace()
+        null
+    }
 }

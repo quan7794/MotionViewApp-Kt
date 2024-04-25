@@ -39,6 +39,7 @@ dependencies {
     implementation (libs.google.gson)
     implementation(libs.timber)
     implementation(libs.kotlinx.collections.immutable)
+    implementation(libs.android.image.cropper)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
