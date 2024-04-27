@@ -146,7 +146,7 @@ class TextEditorDialogFragment
         editText!!.post { // force show the keyboard
             setEditText(true)
             editText!!.requestFocus()
-            val ims = activity!!.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            val ims = requireActivity().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
             ims.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT)
         }
     }

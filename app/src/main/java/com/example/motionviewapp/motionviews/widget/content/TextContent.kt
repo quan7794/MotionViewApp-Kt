@@ -1,4 +1,4 @@
-package com.example.motionviewapp.motionviews.widget.entity
+package com.example.motionviewapp.motionviews.widget.content
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -17,14 +17,13 @@ import androidx.emoji2.text.EmojiCompat
 import androidx.emoji2.text.EmojiSpan
 import com.example.motionviewapp.motionviews.model.TextLayer
 import com.example.motionviewapp.utils.FontProvider
-import kotlin.math.min
 
-class TextEntity(
+class TextContent(
     layer: TextLayer,
     canvasWidth: Int,
     canvasHeight: Int,
     private val fontProvider: FontProvider
-) : MotionEntity(layer, canvasWidth, canvasHeight) {
+) : BaseContent(layer, canvasWidth, canvasHeight) {
 
     private val textPaint: TextPaint = TextPaint(Paint.ANTI_ALIAS_FLAG)
     private var bitmap: Bitmap? = null
@@ -45,7 +44,7 @@ class TextEntity(
         }
     }
 
-    override fun clone(): MotionEntity {
+    override fun clone(): BaseContent {
         val cloneTextLayer = textLayer.cloneTextLayer()
         cloneTextLayer.apply {
             x = textLayer.x
@@ -59,7 +58,7 @@ class TextEntity(
             isEditing = textLayer.isEditing
         }
 
-        return TextEntity(cloneTextLayer, canvasWidth, canvasHeight, fontProvider)
+        return TextContent(cloneTextLayer, canvasWidth, canvasHeight, fontProvider)
     }
 
     override fun release() {

@@ -7,7 +7,7 @@ import android.graphics.DashPathEffect
 import android.graphics.Paint
 import androidx.core.content.ContextCompat
 import com.example.motionviewapp.R
-import com.example.motionviewapp.motionviews.widget.entity.MotionEntity
+import com.example.motionviewapp.motionviews.widget.content.BaseContent
 
 object BorderUtil {
     private fun getComposePathEffect(context: Context): ComposePathEffect {
@@ -19,7 +19,7 @@ object BorderUtil {
         return ComposePathEffect(dashPathEffect, cornerPathEffect)
     }
 
-    fun initEntityBorder(entity: MotionEntity, context: Context, isRotating: Boolean) {
+    fun initEntityBorder(entity: BaseContent, context: Context, isRotating: Boolean) {
         val strokeSize = context.resources.getDimensionPixelSize(R.dimen.stroke_size)
         var strokeColor = ContextCompat.getColor(context, R.color.stroke_color)
         if (isRotating) strokeColor = ContextCompat.getColor(context, R.color.stroke_color_on_rotate)
@@ -33,7 +33,7 @@ object BorderUtil {
         entity.setBorderPaint(borderPaint)
     }
 
-    fun initEntityIconBackground(entity: MotionEntity) {
+    fun initEntityIconBackground(entity: BaseContent) {
         val iconBackground = Paint()
         iconBackground.isAntiAlias = true
         entity.setIconBackground(iconBackground)

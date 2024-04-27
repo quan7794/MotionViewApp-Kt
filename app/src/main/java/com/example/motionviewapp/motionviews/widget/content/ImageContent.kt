@@ -1,4 +1,4 @@
-package com.example.motionviewapp.motionviews.widget.entity
+package com.example.motionviewapp.motionviews.widget.content
 
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -7,19 +7,23 @@ import com.example.motionviewapp.motionviews.model.Layer
 import kotlin.math.min
 
 
-class ImageEntity(
+class ImageContent(
     layer: Layer,
     var bitmap: Bitmap,
     val resId: Int,
     canvasWidth: Int,
     canvasHeight: Int,
-) : MotionEntity(layer, canvasWidth, canvasHeight) {
+) : BaseContent(layer, canvasWidth, canvasHeight) {
 
-    override val bmWidth = bitmap.width
-    override val bmHeight = bitmap.height
+    override var bmWidth = bitmap.width
+    override var bmHeight = bitmap.height
 
     init {
-//        bitmapWidth = bitmap.width.toFloat()
+        initInfo()
+    }
+
+    fun initInfo() {
+        //        bitmapWidth = bitmap.width.toFloat()
 //        val height = bitmap.height.toFloat()
         val widthAspect = 1.0f * canvasWidth / bmWidth
         val heightAspect = 1.0f * canvasHeight / bmHeight
@@ -51,8 +55,8 @@ class ImageEntity(
         }
     }
 
-    override fun clone(): MotionEntity {
-        return ImageEntity(layer.clone(), bitmap, resId, canvasWidth, canvasHeight)
+    override fun clone(): BaseContent {
+        return ImageContent(layer.clone(), bitmap, resId, canvasWidth, canvasHeight)
     }
 
     override fun release() {

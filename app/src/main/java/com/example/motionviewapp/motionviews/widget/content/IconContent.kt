@@ -1,11 +1,11 @@
-package com.example.motionviewapp.motionviews.widget.entity
+package com.example.motionviewapp.motionviews.widget.content
 
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.graphics.PointF
 import androidx.annotation.IntDef
 
-class IconEntity(val bitmapIcon: Bitmap, @Gravity val gravity: Int) {
+class IconContent(val bitmapIcon: Bitmap, @Gravity val gravity: Int) {
     @IntDef(LEFT_TOP, RIGHT_TOP, LEFT_BOTTOM, RIGHT_BOTTOM)
     @Retention(AnnotationRetention.SOURCE)
     annotation class Gravity

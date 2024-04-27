@@ -10,7 +10,6 @@ import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
 import com.canhub.cropper.CropImageContract
 import com.canhub.cropper.CropImageContractOptions
 import com.canhub.cropper.CropImageOptions
@@ -23,8 +22,8 @@ import com.example.motionviewapp.motionviews.ui.TextEditorDialogFragment.OnTextL
 import com.example.motionviewapp.motionviews.ui.adapter.FontsAdapter
 import com.example.motionviewapp.motionviews.widget.MotionView
 import com.example.motionviewapp.motionviews.widget.MotionView.MotionViewCallback
-import com.example.motionviewapp.motionviews.widget.entity.MotionEntity
-import com.example.motionviewapp.motionviews.widget.entity.TextEntity
+import com.example.motionviewapp.motionviews.widget.content.BaseContent
+import com.example.motionviewapp.motionviews.widget.content.TextContent
 import com.example.motionviewapp.utils.FontProvider
 import com.example.motionviewapp.utils.addImageContent
 import com.example.motionviewapp.utils.addTextContent
@@ -34,11 +33,9 @@ import com.example.motionviewapp.utils.getBitmap
 import com.example.motionviewapp.utils.importEdpTemplate
 import com.example.motionviewapp.utils.saveImage
 import com.example.motionviewapp.utils.setCurrentTextColor
-import com.example.motionviewapp.utils.updateSelectedContentImage
+import com.example.motionviewapp.utils.setImageForSelectedContent
 import com.flask.colorpicker.ColorPickerView
 import com.flask.colorpicker.builder.ColorPickerDialogBuilder
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import timber.log.Timber
 
 class MainActivity : AppCompatActivity(), OnTextLayerCallback {
@@ -54,8 +51,8 @@ class MainActivity : AppCompatActivity(), OnTextLayerCallback {
         override fun onRelease() {
         }
 
-        override fun onEntitySelected(entity: MotionEntity?) {
-            if (entity is TextEntity) {
+        override fun onEntitySelected(entity: BaseContent?) {
+            if (entity is TextContent) {
                 textEntityEditPanel!!.visibility = View.VISIBLE
             } else {
                 textEntityEditPanel!!.visibility = View.GONE
@@ -71,7 +68,7 @@ class MainActivity : AppCompatActivity(), OnTextLayerCallback {
         override fun onEntityReselected() {
         }
 
-        override fun onEntityDoubleTap(entity: MotionEntity) {
+        override fun onEntityDoubleTap(entity: BaseContent) {
             startTextEntityEditing()
         }
 
@@ -130,7 +127,7 @@ class MainActivity : AppCompatActivity(), OnTextLayerCallback {
             // Use the returned uri.
             val uriContent = result.uriContent
             val uriFilePath = result.getUriFilePath(this) // optional usage
-            uriContent!!.getBitmap(contentResolver)?.let { motionView!!.updateSelectedContentImage(it) }
+            uriContent!!.getBitmap(contentResolver)?.let { motionView!!.setImageForSelectedContent(it) }
         } else {
             // An error occurred.
             val exception = result.error

@@ -1,9 +1,7 @@
 package com.example.motionviewapp.utils
 
-import android.content.Context
 import android.graphics.PointF
-import android.util.TypedValue
-import com.example.motionviewapp.motionviews.widget.entity.MotionEntity
+import com.example.motionviewapp.motionviews.widget.content.BaseContent
 
 object MathUtils {
 
@@ -89,7 +87,7 @@ object MathUtils {
      * @return the distance between two points is normal or not
      */
     fun checkValidMovement(pointOne: PointF, pointTwo: PointF): Boolean {
-        val normalDistanceRatio = 0f..MotionEntity.RATIO_POINTER
+        val normalDistanceRatio = 0f..BaseContent.RATIO_POINTER
         if (pointOne.x >= pointTwo.x) {
             if (pointOne.y >= pointTwo.y) {
                 if (pointOne.x / pointTwo.x in normalDistanceRatio && pointOne.y / pointTwo.y in normalDistanceRatio)

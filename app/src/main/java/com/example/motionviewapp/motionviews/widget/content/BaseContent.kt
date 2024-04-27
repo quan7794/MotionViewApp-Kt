@@ -1,4 +1,4 @@
-package com.example.motionviewapp.motionviews.widget.entity
+package com.example.motionviewapp.motionviews.widget.content
 
 import android.graphics.Canvas
 import android.graphics.Matrix
@@ -10,7 +10,7 @@ import com.example.motionviewapp.motionviews.model.Layer
 import com.example.motionviewapp.motionviews.widget.MotionView
 import com.example.motionviewapp.utils.MathUtils
 
-abstract class MotionEntity(
+abstract class BaseContent(
     open var layer: Layer,
     protected open var canvasWidth: Int,
     protected open var canvasHeight: Int
@@ -172,17 +172,17 @@ abstract class MotionEntity(
 
     }
 
-    fun pointInLayerRectIcon(point: PointF, iconEntity: IconEntity): Boolean {
-        iconEntity.pA.x = iconEntity.destPoints[0]
-        iconEntity.pA.y = iconEntity.destPoints[1]
-        iconEntity.pB.x = iconEntity.destPoints[2]
-        iconEntity.pB.y = iconEntity.destPoints[3]
-        iconEntity.pC.x = iconEntity.destPoints[4]
-        iconEntity.pC.y = iconEntity.destPoints[5]
-        iconEntity.pD.x = iconEntity.destPoints[6]
-        iconEntity.pD.y = iconEntity.destPoints[7]
-        return MathUtils.pointInTriangle(point, iconEntity.pA, iconEntity.pB, iconEntity.pC) ||
-                MathUtils.pointInTriangle(point, iconEntity.pA, iconEntity.pD, iconEntity.pC)
+    fun pointInLayerRectIcon(point: PointF, iconContent: IconContent): Boolean {
+        iconContent.pA.x = iconContent.destPoints[0]
+        iconContent.pA.y = iconContent.destPoints[1]
+        iconContent.pB.x = iconContent.destPoints[2]
+        iconContent.pB.y = iconContent.destPoints[3]
+        iconContent.pC.x = iconContent.destPoints[4]
+        iconContent.pC.y = iconContent.destPoints[5]
+        iconContent.pD.x = iconContent.destPoints[6]
+        iconContent.pD.y = iconContent.destPoints[7]
+        return MathUtils.pointInTriangle(point, iconContent.pA, iconContent.pB, iconContent.pC) ||
+                MathUtils.pointInTriangle(point, iconContent.pA, iconContent.pD, iconContent.pC)
     }
 
     private fun centerPointOfRect(matrix: Matrix): PointF {
@@ -222,7 +222,7 @@ abstract class MotionEntity(
         return Math.sqrt(((point2.y - point1.y) * (point2.y - point1.y) + (point2.x - point1.x) * (point2.x - point1.x)).toDouble()).toFloat()
     }
 
-    fun draw(canvas: Canvas, drawingPaint: Paint?, icons: MutableList<IconEntity>, editorInfo: EditorInfo) {
+    fun draw(canvas: Canvas, drawingPaint: Paint?, icons: MutableList<IconContent>, editorInfo: EditorInfo) {
         updateMatrix(editorInfo)
         canvas.save()
         drawContent(canvas, drawingPaint)
@@ -244,7 +244,7 @@ abstract class MotionEntity(
     }
 
     fun drawForSave(canvas: Canvas, editorInfo: EditorInfo) {
-        if (this is TextEntity) {
+        if (this is TextContent) {
             updateMatrix(editorInfo)
         }
         canvas.save()
@@ -263,27 +263,27 @@ abstract class MotionEntity(
         canvas.drawPath(path, borderPaint)
     }
 
-    private fun drawIcons(canvas: Canvas, icons: MutableList<IconEntity>) {
+    private fun drawIcons(canvas: Canvas, icons: MutableList<IconContent>) {
         var x = 0f
         var y = 0f
         for (iconEntity in icons) {
             when (iconEntity.gravity) {
-                IconEntity.LEFT_TOP -> {
+                IconContent.LEFT_TOP -> {
                     x = destPoints[0]
                     y = destPoints[1]
                 }
 
-                IconEntity.RIGHT_BOTTOM -> {
+                IconContent.RIGHT_BOTTOM -> {
                     x = destPoints[4]
                     y = destPoints[5]
                 }
 
-                IconEntity.LEFT_BOTTOM -> {
+                IconContent.LEFT_BOTTOM -> {
                     x = destPoints[6]
                     y = destPoints[7]
                 }
 
-                IconEntity.RIGHT_TOP -> {
+                IconContent.RIGHT_TOP -> {
                     x = destPoints[2]
                     y = destPoints[3]
                 }
@@ -293,16 +293,16 @@ abstract class MotionEntity(
         }
     }
 
-    private fun configIconMatrix(iconEntity: IconEntity, x: Float, y: Float) {
-        iconEntity.matrix.reset()
-        val topLeftX: Float = x - iconEntity.width / 2
-        val topLeftY: Float = y - iconEntity.height / 2
+    private fun configIconMatrix(iconContent: IconContent, x: Float, y: Float) {
+        iconContent.matrix.reset()
+        val topLeftX: Float = x - iconContent.width / 2
+        val topLeftY: Float = y - iconContent.height / 2
         // calculate params
         val rotationInDegree: Float = layer.rotationInDegrees
 
-        iconEntity.matrix.preRotate(rotationInDegree, x, y)
-        iconEntity.matrix.preTranslate(topLeftX, topLeftY)
-        iconEntity.matrix.mapPoints(iconEntity.destPoints, iconEntity.srcPoints)
+        iconContent.matrix.preRotate(rotationInDegree, x, y)
+        iconContent.matrix.preTranslate(topLeftX, topLeftY)
+        iconContent.matrix.mapPoints(iconContent.destPoints, iconContent.srcPoints)
     }
 
     fun setBorderPaint(borderPaint: Paint) {
@@ -316,7 +316,7 @@ abstract class MotionEntity(
     protected abstract fun drawContent(canvas: Canvas, drawingPaint: Paint?)
     abstract val bmWidth: Int
     abstract val bmHeight: Int
-    abstract fun clone(): MotionEntity
+    abstract fun clone(): BaseContent
     abstract fun release()
 
 //    protected fun finalize() {
