@@ -19,7 +19,7 @@ object BorderUtil {
         return ComposePathEffect(dashPathEffect, cornerPathEffect)
     }
 
-    fun initEntityBorder(entity: BaseContent, context: Context, isRotating: Boolean) {
+    fun initContentBorder(entity: BaseContent, context: Context, isRotating: Boolean) {
         val strokeSize = context.resources.getDimensionPixelSize(R.dimen.stroke_size)
         var strokeColor = ContextCompat.getColor(context, R.color.stroke_color)
         if (isRotating) strokeColor = ContextCompat.getColor(context, R.color.stroke_color_on_rotate)
@@ -33,7 +33,7 @@ object BorderUtil {
         entity.setBorderPaint(borderPaint)
     }
 
-    fun initEntityIconBackground(entity: BaseContent) {
+    fun initContentIconBackground(entity: BaseContent) {
         val iconBackground = Paint()
         iconBackground.isAntiAlias = true
         entity.setIconBackground(iconBackground)

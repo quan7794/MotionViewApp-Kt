@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
 import com.example.motionviewapp.motionviews.model.Layer
+import timber.log.Timber
 import kotlin.math.min
 
 

@@ -27,12 +27,13 @@ import com.example.motionviewapp.motionviews.ui.adapter.FontsAdapter
 import com.example.motionviewapp.motionviews.widget.MotionView
 import com.example.motionviewapp.motionviews.widget.MotionView.MotionViewCallback
 import com.example.motionviewapp.motionviews.widget.content.BaseContent
+import com.example.motionviewapp.motionviews.widget.content.ImageContent
 import com.example.motionviewapp.motionviews.widget.content.TextContent
 import com.example.motionviewapp.utils.FontProvider
 import com.example.motionviewapp.utils.addImageContent
 import com.example.motionviewapp.utils.addTextContent
 import com.example.motionviewapp.utils.setCurrentTextFont
-import com.example.motionviewapp.utils.currentTextEntity
+import com.example.motionviewapp.utils.currentTextContent
 import com.example.motionviewapp.utils.getBitmap
 import com.example.motionviewapp.utils.importEdpTemplate
 import com.example.motionviewapp.utils.saveImage
@@ -45,7 +46,7 @@ import timber.log.Timber
 
 class MainActivity : AppCompatActivity(), OnTextLayerCallback {
     protected var motionView: MotionView? = null
-    protected var textEntityEditPanel: View? = null
+    protected var textContentEditPanel: View? = null
 
 //    private val epd = EPDTemplate()
 
@@ -56,28 +57,28 @@ class MainActivity : AppCompatActivity(), OnTextLayerCallback {
         override fun onRelease() {
         }
 
-        override fun onEntitySelected(entity: BaseContent?) {
-            if (entity is TextContent) {
-                textEntityEditPanel!!.visibility = View.VISIBLE
+        override fun onContentSelected(content: BaseContent?) {
+            if (content is TextContent) {
+                textContentEditPanel!!.visibility = View.VISIBLE
             } else {
-                textEntityEditPanel!!.visibility = View.GONE
+                textContentEditPanel!!.visibility = View.GONE
             }
         }
 
-        override fun onEntityDeleted() {
+        override fun onContentDeleted() {
         }
 
-        override fun onEntityAdded() {
+        override fun onContentAdded() {
         }
 
-        override fun onEntityReselected() {
+        override fun onContentReselected() {
         }
 
-        override fun onEntityDoubleTap(entity: BaseContent) {
-            startTextEntityEditing()
+        override fun onContentDoubleTap(content: BaseContent) {
+            startTextEditing()
         }
 
-        override fun onEntityUnselected() {
+        override fun onContentUnselected() {
         }
     }
     private var fontProvider: FontProvider? = null
@@ -88,7 +89,7 @@ class MainActivity : AppCompatActivity(), OnTextLayerCallback {
         this.fontProvider = FontProvider(resources)
 
         motionView = findViewById(R.id.main_motion_view)
-        textEntityEditPanel = findViewById(R.id.main_motion_text_entity_edit_panel)
+        textContentEditPanel = findViewById(R.id.main_motion_text_content_edit_panel)
         motionView!!.setMotionViewCallback(motionViewCallback)
 
         initEpdTemplateData()
@@ -103,26 +104,27 @@ class MainActivity : AppCompatActivity(), OnTextLayerCallback {
     }
 
     private fun initClickListeners() {
-        findViewById<View>(R.id.text_entity_font_size_increase).setOnClickListener { view: View? -> increaseTextEntitySize() }
-        findViewById<View>(R.id.text_entity_font_size_decrease).setOnClickListener { view: View? -> decreaseTextEntitySize() }
-        findViewById<View>(R.id.text_entity_color_change).setOnClickListener { view: View? -> changeTextEntityColor() }
-        findViewById<View>(R.id.text_entity_font_change).setOnClickListener { view: View? -> changeTextEntityFont() }
-        findViewById<View>(R.id.text_entity_edit).setOnClickListener { view: View? -> startTextEntityEditing() }
-        findViewById<View>(R.id.btnChangeImage).setOnClickListener { view: View? ->
-            motionView!!.selectedEntity
-            cropImage.launch(
-                CropImageContractOptions(
-                    uri = null,
-                    cropImageOptions = CropImageOptions(
-                        guidelines = CropImageView.Guidelines.ON,
-                        outputCompressFormat = Bitmap.CompressFormat.PNG,
-                        outputCompressQuality = 50,
-                        fixAspectRatio = true,
-                        aspectRatioX = motionView!!.selectedEntity!!.bmWidth,
-                        aspectRatioY = motionView!!.selectedEntity!!.bmHeight,
+        findViewById<View>(R.id.text_content_font_size_increase).setOnClickListener { increaseTextSize() }
+        findViewById<View>(R.id.text_content_font_size_decrease).setOnClickListener { decreaseTextSize() }
+        findViewById<View>(R.id.text_content_color_change).setOnClickListener { changeTextColor() }
+        findViewById<View>(R.id.text_content_font_change).setOnClickListener { changeTextFont() }
+        findViewById<View>(R.id.text_content_edit).setOnClickListener { startTextEditing() }
+        findViewById<View>(R.id.btnChangeImage).setOnClickListener {
+            motionView?.selectedContent?.let {
+                if (it is ImageContent) cropImage.launch(
+                    CropImageContractOptions(
+                        uri = null,
+                        cropImageOptions = CropImageOptions(
+                            guidelines = CropImageView.Guidelines.ON,
+                            outputCompressFormat = Bitmap.CompressFormat.PNG,
+                            outputCompressQuality = 50,
+                            fixAspectRatio = true,
+                            aspectRatioX = it.bmWidth,
+                            aspectRatioY = it.bmHeight,
+                        )
                     )
                 )
-            )
+            }
         }
         findViewById<View>(R.id.theme1).setOnClickListener { view: View? -> changeTheme(Color.DKGRAY) }
         findViewById<View>(R.id.theme2).setOnClickListener { view: View? -> changeTheme(Color.BLUE) }
@@ -145,28 +147,28 @@ class MainActivity : AppCompatActivity(), OnTextLayerCallback {
         }
     }
 
-    private fun increaseTextEntitySize() {
-        val textEntity = motionView!!.currentTextEntity()
-        if (textEntity != null) {
-            textEntity.textLayer.font.increaseSize(TextLayer.Limits.FONT_SIZE_STEP)
-            textEntity.updateEntity()
+    private fun increaseTextSize() {
+        val textContent = motionView!!.currentTextContent()
+        if (textContent != null) {
+            textContent.textLayer.font.increaseSize(TextLayer.Limits.FONT_SIZE_STEP)
+            textContent.updateContent()
             motionView!!.invalidate()
         }
     }
 
-    private fun decreaseTextEntitySize() {
-        val textEntity = motionView!!.currentTextEntity()
-        if (textEntity != null) {
-            textEntity.textLayer.font.decreaseSize(TextLayer.Limits.FONT_SIZE_STEP)
-            textEntity.updateEntity()
+    private fun decreaseTextSize() {
+        val textContent = motionView!!.currentTextContent()
+        if (textContent != null) {
+            textContent.textLayer.font.decreaseSize(TextLayer.Limits.FONT_SIZE_STEP)
+            textContent.updateContent()
             motionView!!.invalidate()
         }
     }
 
-    private fun changeTextEntityColor() {
-        val textEntity = motionView!!.currentTextEntity() ?: return
+    private fun changeTextColor() {
+        val textContent = motionView!!.currentTextContent() ?: return
 
-        val initialColor = textEntity.textLayer.font.color
+        val initialColor = textContent.textLayer.font.color
 
         ColorPickerDialogBuilder
             .with(this@MainActivity)
@@ -182,7 +184,7 @@ class MainActivity : AppCompatActivity(), OnTextLayerCallback {
             .show()
     }
 
-    private fun changeTextEntityFont() {
+    private fun changeTextFont() {
         val fonts = fontProvider!!.fontNames
         val fontsAdapter = FontsAdapter(this, fonts, fontProvider!!)
         AlertDialog.Builder(this)
@@ -193,10 +195,10 @@ class MainActivity : AppCompatActivity(), OnTextLayerCallback {
             .show()
     }
 
-    private fun startTextEntityEditing() {
-        val textEntity = motionView!!.currentTextEntity()
-        if (textEntity != null) {
-            val fragment = TextEditorDialogFragment.getInstance(textEntity.textLayer.text)
+    private fun startTextEditing() {
+        val textContent = motionView!!.currentTextContent()
+        if (textContent != null) {
+            val fragment = TextEditorDialogFragment.getInstance(textContent.textLayer.text)
             fragment.show(supportFragmentManager, TextEditorDialogFragment::class.java.name)
         }
     }
@@ -217,12 +219,14 @@ class MainActivity : AppCompatActivity(), OnTextLayerCallback {
 
             R.id.main_add_text -> {
                 motionView!!.addTextContent(fontProvider!!)
-                startTextEntityEditing()
+                startTextEditing()
             }
 
-            R.id.main_save -> lifecycleScope.launch { motionView?.saveImage()?.let {
-                findViewById<ImageView>(R.id.ivOutput).setImageBitmap(it)
-            } }
+            R.id.main_save -> lifecycleScope.launch {
+                motionView?.saveImage()?.let {
+                    findViewById<ImageView>(R.id.ivOutput).setImageBitmap(it)
+                }
+            }
         }
         return super.onOptionsItemSelected(item)
     }
@@ -243,12 +247,12 @@ class MainActivity : AppCompatActivity(), OnTextLayerCallback {
     }
 
     override fun textChanged(text: String) {
-        val textEntity = motionView!!.currentTextEntity()
-        if (textEntity != null) {
-            val textLayer = textEntity.textLayer
+        val textContent = motionView!!.currentTextContent()
+        if (textContent != null) {
+            val textLayer = textContent.textLayer
             if (text != textLayer.text) {
                 textLayer.text = text
-                textEntity.updateEntity()
+                textContent.updateContent()
                 motionView!!.invalidate()
             }
         }

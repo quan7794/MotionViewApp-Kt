@@ -32,7 +32,7 @@ class TextContent(
     var textLayer = layer
 
     init {
-        updateEntity()
+        updateContent()
     }
 
     override val bmWidth: Int = bitmap?.width ?: 0
@@ -69,14 +69,10 @@ class TextContent(
         }
     }
 
-    fun updateEntity() {
+    fun updateContent() {
         val newBmp: Bitmap = createBitmap(textLayer, bitmap)
 
-        bitmap?.let { bitmap ->
-            if (bitmap != newBmp && !bitmap.isRecycled) {
-                bitmap.recycle()
-            }
-        }
+        bitmap?.let { bitmap -> if (bitmap != newBmp && !bitmap.isRecycled) bitmap.recycle() }
         bitmap = newBmp
 
         bitmapWidth = bitmap?.width?.toFloat() ?: 0f
@@ -131,7 +127,7 @@ class TextContent(
             true
         ) // true - include padding
 
-        // calculate height for the entity, min - Limits.MIN_BITMAP_HEIGHT
+        // calculate height for the content, min - Limits.MIN_BITMAP_HEIGHT
         val boundsHeight = sl.height
 
         // create bitmap not smaller than TextLayer.Limits.MIN_BITMAP_HEIGHT

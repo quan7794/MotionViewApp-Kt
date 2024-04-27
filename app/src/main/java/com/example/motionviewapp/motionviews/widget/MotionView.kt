@@ -38,7 +38,7 @@ import com.example.motionviewapp.motionviews.widget.content.TextContent
 
 class MotionView : FrameLayout {
 
-    private val entities: MutableList<BaseContent> = ArrayList()
+    private val contents: MutableList<BaseContent> = ArrayList()
     private val icons: MutableList<IconContent> = ArrayList()
     private lateinit var motionViewCallback: MotionViewCallback
     private lateinit var scaleGestureDetector: ScaleGestureDetector
@@ -47,8 +47,10 @@ class MotionView : FrameLayout {
     private lateinit var gestureDetectorCompat: GestureDetectorCompat
     private lateinit var motionViewRectF: RectF
     var editorInfo = EditorInfo()
-    var selectedEntity: BaseContent? = null
-    @ColorInt private var themeColor: Int = Color.WHITE
+    var selectedContent: BaseContent? = null
+
+    @ColorInt
+    private var themeColor: Int = Color.WHITE
 
     constructor(context: Context) : super(context) {
         init(context)
@@ -85,7 +87,7 @@ class MotionView : FrameLayout {
     override fun dispatchDraw(canvas: Canvas) {
         super.dispatchDraw(canvas)
         drawThemeColor(canvas)
-        drawAllEntities(canvas)
+        drawAllContents(canvas)
     }
 
     fun setThemeColor(@ColorInt color: Int) {
@@ -109,15 +111,15 @@ class MotionView : FrameLayout {
         motionViewCallback = callback
     }
 
-    fun addEntity(entity: BaseContent, action: AddAction = AddAction.TO_POSITION) {
-        initEntityBorderAndIconBackground(entity)
-        entities.add(entity)
+    fun addContent(content: BaseContent, action: AddAction = AddAction.TO_POSITION) {
+        initContentBorderAndIconBackground(content)
+        contents.add(content)
         when (action) {
             AddAction.TO_POSITION -> {}
 
             AddAction.TO_CENTER -> {
-                entity.moveToCanvasCenter()
-                initTranslateAndScale(entity)
+                content.moveToCanvasCenter()
+                initTranslateAndScale(content)
             }
 
             AddAction.EDIT_DONE -> {
@@ -126,55 +128,56 @@ class MotionView : FrameLayout {
             AddAction.EDIT_CANCEL -> {
             }
         }
-        selectEntity(entity, true)
-        motionViewCallback.onEntityAdded()
+        selectContent(content, true)
+        motionViewCallback.onContentAdded()
     }
 
-    fun addEntities(entityList: List<BaseContent>, needToDraw: Boolean) {
-        for (entity in entityList) {
-            initEntityBorderAndIconBackground(entity)
-            entities.add(entity)
+    fun addContents(contents: List<BaseContent>, needToDraw: Boolean) {
+        for (content in contents) {
+            initContentBorderAndIconBackground(content)
+            this.contents.add(content)
         }
         if (needToDraw) updateUI()
     }
 
-    fun getEntities(): List<BaseContent> = entities
+    fun getContents(): List<BaseContent> = contents
 
-    private fun initTranslateAndScale(entity: BaseContent) {
-        entity.layer.scale = entity.layer.initialScale
+    private fun initTranslateAndScale(content: BaseContent) {
+        content.layer.scale = content.layer.initialScale
     }
 
     fun getFinalBitmap(bitmap: Bitmap): Bitmap {
-        selectEntity(null, false)
+        selectContent(null, false)
         val canvas = Canvas(bitmap)
         drawThemeColor(canvas)
-        drawEntitiesForSave(canvas, bitmap)
+        drawContentsForSave(canvas, bitmap)
         return bitmap
     }
 
-    fun deleteSelectedEntity() {
-        selectedEntity?.let {
-            entities.remove(it)
-            unSelectEntity()
+    fun deleteSelectedContent() {
+        selectedContent?.use { deleteContent(it) }
+    }
+
+    fun deleteContent(content: BaseContent) {
+        if (contents.remove(content)) {
+            unSelectContent()
             updateUI()
-            motionViewCallback.onEntityDeleted()
+            motionViewCallback.onContentDeleted()
+        } else {
+            Log.e("MotionView", "Not found content to delete")
         }
     }
 
     fun reset() {
-        entities.clear()
-        selectEntity(null, false)
+        contents.clear()
+        selectContent(null, false)
         updateUI()
-        motionViewCallback.onEntityUnselected()
+        motionViewCallback.onContentUnselected()
     }
 
-    fun isReachMaxEntities(): Boolean {
-        return (entities.size == MAX_ENTITIES)
-    }
+    fun isReachMaxContents() = (contents.size == MAX_CONTENTS)
 
-    fun isEntitiesEmpty(): Boolean {
-        return entities.isEmpty()
-    }
+    fun isNoContent() = contents.isEmpty()
 
     private fun configDefaultIcons() {
         val rawDeleteIcon = BitmapFactory.decodeResource(resources, R.drawable.ic_photo_delete)
@@ -183,62 +186,55 @@ class MotionView : FrameLayout {
         val deleteIcon = Bitmap.createScaledBitmap(rawDeleteIcon, iconSize, iconSize, false)
         val rotateIcon = Bitmap.createScaledBitmap(rawRotateIcon, iconSize, iconSize, false)
 
-        val iconEntities: MutableList<IconContent> = ArrayList()
-        iconEntities.add(IconContent(deleteIcon, IconContent.RIGHT_TOP))
-        iconEntities.add(IconContent(rotateIcon, IconContent.LEFT_TOP))
-        iconEntities.add(IconContent(rotateIcon, IconContent.LEFT_BOTTOM))
-        iconEntities.add(IconContent(rotateIcon, IconContent.RIGHT_BOTTOM))
-        icons.clear()
-        iconEntities.forEach {
-            icons.add(it)
+        ArrayList<IconContent>().apply {
+            add(IconContent(deleteIcon, IconContent.RIGHT_TOP))
+            add(IconContent(rotateIcon, IconContent.LEFT_TOP))
+            add(IconContent(rotateIcon, IconContent.LEFT_BOTTOM))
+            add(IconContent(rotateIcon, IconContent.RIGHT_BOTTOM))
+            icons.clear()
+            forEach { icons.add(it) }
         }
     }
 
-    private fun selectIconEntity(iconContent: IconContent?) {
+    private fun onIconContentClick(iconContent: IconContent?) {
         when (iconContent?.gravity) {
-            IconContent.RIGHT_TOP -> {
-                deleteSelectedEntity()
-            }
+            IconContent.RIGHT_TOP -> deleteSelectedContent()
+            else -> {}
         }
     }
 
-    private fun drawAllEntities(canvas: Canvas) {
-        for (i in entities.indices) {
-            entities[i].draw(canvas, null, icons, editorInfo)
+    private fun drawAllContents(canvas: Canvas) {
+        for (i in contents.indices) {
+            contents[i].draw(canvas, null, icons, editorInfo)
         }
     }
 
-    private fun drawEntitiesForSave(canvas: Canvas, bitmap: Bitmap) {
-        for (i in entities.indices) {
-            val scaledMatrixInfo = getScaledMatrixInfo(entities[i], bitmap)
-            if (entities[i] is TextContent) {
-                var tempEntity = entities[i].clone() as TextContent
-                tempEntity.matrix.setValues(scaledMatrixInfo)
-                tempEntity.updateLayer()
-                tempEntity = getRedrawTextEntity(tempEntity)
-                tempEntity.drawForSave(canvas, editorInfo)
-//                tempEntity.release()
+    private fun drawContentsForSave(canvas: Canvas, bitmap: Bitmap) {
+        for (i in contents.indices) {
+            val scaledMatrixInfo = getScaledMatrixInfo(contents[i], bitmap)
+            if (contents[i] is TextContent) {
+                var tempContent = (contents[i].clone() as TextContent).apply {
+                    matrix.setValues(scaledMatrixInfo)
+                    updateLayer()
+                }
+                tempContent = getRedrawTextContent(tempContent)
+                tempContent.drawForSave(canvas, editorInfo)
             } else {
-                var saveImEntity = entities[i].clone() as ImageContent
-                saveImEntity.matrix.setValues(scaledMatrixInfo)
-//                saveImEntity = redrawImageEntity(imageEntity) //todo: create high resolution later
-                saveImEntity.drawForSave(canvas, editorInfo)
-                //               imageEntity.release()
+                var tempContent = contents[i].clone() as ImageContent
+                tempContent.matrix.setValues(scaledMatrixInfo)
+//                saveImContent = redrawImageContent(tempContent) //todo: create high resolution later
+                tempContent.drawForSave(canvas, editorInfo)
             }
         }
     }
 
-    fun releaseAllEntities() {
-        Log.d("MotionView", "releaseAllEntities START")
-        for (i in entities.indices) {
-            if (entities[i] is TextContent)
-                (entities[i] as TextContent).release()
-            else (entities[i] as ImageContent).release()
-        }
-        Log.d("MotionView", "releaseAllEntities DONE")
+    fun releaseAllContents() {
+        Log.d("MotionView", "releaseAllContents START")
+        contents.forEach { content -> content.release() }
+        Log.d("MotionView", "releaseAllContents DONE")
     }
 
-    private fun redrawImageEntity(imageContent: ImageContent): ImageContent {
+    private fun redrawImageContent(imageContent: ImageContent): ImageContent {
         val ratio = imageContent.layer.scale / imageContent.layer.initialScale
         val currentBitmapWidth = imageContent.bitmap.width
         val currentBitmapHeight = imageContent.bitmap.height
@@ -255,7 +251,7 @@ class MotionView : FrameLayout {
         }
 
         val newScaleRatio = newBitmapWidth / currentBitmapWidth
-//        val newBitmap = StickerUtil.getBitmapFromSVG(context, imageEntity.resId, newBitmapWidth.toInt(), newBitmapHeight.toInt()) //svg case
+//        val newBitmap = StickerUtil.getBitmapFromSVG(context, imageContent.resId, newBitmapWidth.toInt(), newBitmapHeight.toInt()) //svg case
         val newBitmap = BitmapFactory.decodeResource(context.resources, imageContent.resId)
 
         val newMatrixInfo = FloatArray(10)
@@ -287,7 +283,7 @@ class MotionView : FrameLayout {
     }
 
     private fun getScaledMatrixInfo(baseContent: BaseContent, bitmap: Bitmap): FloatArray {
-        // Scale entities matrix
+        // Scale contents matrix
         val ratio = 1f * bitmap.width / this.width
         val matrixInfo = FloatArray(10)
 
@@ -304,32 +300,32 @@ class MotionView : FrameLayout {
         invalidate()
     }
 
-    fun selectEntity(entity: BaseContent?, updateCallback: Boolean) {
-        selectedEntity?.isSelected = false
-        entity?.let {
+    fun selectContent(content: BaseContent?, updateCallback: Boolean) {
+        selectedContent?.isSelected = false
+        content?.let {
             it.isSelected = true
             bringLayerToFront(it)
         }
-        selectedEntity = entity
+        selectedContent = content
         if (updateCallback) {
-            motionViewCallback.onEntitySelected(entity)
+            motionViewCallback.onContentSelected(content)
         }
         updateUI()
     }
 
-    fun unSelectEntity() {
-        selectedEntity?.let {
-            selectEntity(null, true)
-            motionViewCallback.onEntityUnselected()
+    fun unSelectContent() {
+        selectedContent?.let {
+            selectContent(null, true)
+            motionViewCallback.onContentUnselected()
         }
     }
 
-    private fun findEntityAtPoint(x: Float, y: Float): BaseContent? {
+    private fun findContentAtPoint(x: Float, y: Float): BaseContent? {
         var selected: BaseContent? = null
         val p = PointF(x, y)
-        for (i in entities.indices.reversed()) {
-            if (entities[i].pointInLayerRect(p, editorInfo)) {
-                selected = entities[i]
+        for (i in contents.indices.reversed()) {
+            if (contents[i].pointInLayerRect(p, editorInfo)) {
+                selected = contents[i]
                 break
             }
         }
@@ -338,20 +334,19 @@ class MotionView : FrameLayout {
 
     private fun updateSelectionOnTap(e: MotionEvent) {
         val iconContent: IconContent? = findIconAtPoint(e.x, e.y)
-        selectIconEntity(iconContent)
-        val entity: BaseContent? = findEntityAtPoint(e.x, e.y)
-        when (entity) {
-            null -> unSelectEntity()
-            selectedEntity -> motionViewCallback.onEntityReselected()
+        onIconContentClick(iconContent)
+        when (val content: BaseContent? = findContentAtPoint(e.x, e.y)) {
+            null -> unSelectContent()
+            selectedContent -> motionViewCallback.onContentReselected()
             else -> {
-                selectEntity(entity, true)
+                selectContent(content, true)
             }
         }
     }
 
     private fun findIconAtPoint(x: Float, y: Float): IconContent? {
         var selected: IconContent? = null
-        selectedEntity?.let {
+        selectedContent?.let {
             for (i in icons.indices.reversed()) {
                 if (it.pointInLayerRectIcon(PointF(x, y), icons[i])) {
                     selected = icons[i]
@@ -362,36 +357,36 @@ class MotionView : FrameLayout {
         return selected
     }
 
-    private fun bringLayerToFront(entity: BaseContent) {
-        val pos = entities.indexOf(entity)
-        if (pos != entities.size - 1) {
-            if (entities.remove(entity)) {
-                entities.add(entity)
+    private fun bringLayerToFront(content: BaseContent) {
+        val pos = contents.indexOf(content)
+        if (pos != contents.size - 1) {
+            if (contents.remove(content)) {
+                contents.add(content)
                 updateUI()
             }
         }
     }
 
-//    private fun moveEntityToBack(entity: MotionEntity?) {
-//        if (entity == null) {
+//    private fun moveContentToBack(content: MotionContent?) {
+//        if (content == null) {
 //            return
 //        }
-//        if (entities.remove(entity)) {
-//            entities.add(0, entity)
+//        if (contents.remove(content)) {
+//            contents.add(0, content)
 //            updateUI()
 //        }
 //    }
 
-//    private fun flipSelectedEntity() {
-//        if (selectedEntity == null) {
+//    private fun flipSelectedContent() {
+//        if (selectedContent == null) {
 //            return
 //        }
-//        selectedEntity!!.layer.flip()
+//        selectedContent!!.layer.flip()
 //        updateUI()
 //    }
 
 //    private fun moveSelectedToBack() {
-//        moveEntityToBack(selectedEntity)
+//        moveContentToBack(selectedContent)
 //    }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -399,8 +394,8 @@ class MotionView : FrameLayout {
         event?.let {
             when (it.action and MotionEvent.ACTION_MASK) {
                 MotionEvent.ACTION_POINTER_DOWN -> {
-                    selectEntity(checkTouchEventWithEntity(it), false)
-                    if (selectedEntity != null) motionViewCallback.onTouch()
+                    selectContent(checkTouchEventWithContent(it), false)
+                    if (selectedContent != null) motionViewCallback.onTouch()
                 }
 
                 MotionEvent.ACTION_DOWN -> {
@@ -425,7 +420,7 @@ class MotionView : FrameLayout {
                 }
 
                 MotionEvent.ACTION_MOVE -> {
-                    if (selectedEntity != null) motionViewCallback.onTouch()
+                    if (selectedContent != null) motionViewCallback.onTouch()
                 }
 
                 MotionEvent.ACTION_UP -> motionViewCallback.onRelease()
@@ -443,12 +438,12 @@ class MotionView : FrameLayout {
     private fun toggleOneFingerRotation(isEnabled: Boolean) {
         when (isEnabled) {
             true -> {
-                rotateGestureDetector.entityCenterPoint = selectedEntity?.currCenter
+                rotateGestureDetector.contentCenterPoint = selectedContent?.currCenter
                 setOnTouchListener(onRotateTouchListener)
             }
 
             else -> {
-                rotateGestureDetector.entityCenterPoint = null
+                rotateGestureDetector.contentCenterPoint = null
                 setOnTouchListener(onTouchListener)
             }
         }
@@ -475,9 +470,7 @@ class MotionView : FrameLayout {
 
     private inner class TapsListener : GestureDetector.SimpleOnGestureListener() {
         override fun onDoubleTap(e: MotionEvent): Boolean {
-            selectedEntity?.let {
-                motionViewCallback.onEntityDoubleTap(it)
-            }
+            selectedContent?.let { motionViewCallback.onContentDoubleTap(it) }
             return true
         }
 
@@ -487,17 +480,17 @@ class MotionView : FrameLayout {
         }
     }
 
-    fun redrawAllTextEntity() {
-        for (position in entities.indices) {
-            if (entities[position] is TextContent) {
-                redrawTextEntityAt(position)
+    fun redrawAllTextContent() {
+        for (position in contents.indices) {
+            if (contents[position] is TextContent) {
+                redrawTextContentAt(position)
             }
         }
     }
 
-    private fun redrawTextEntityAt(position: Int) {
-        val currTextContent = entities[position] as TextContent
-//        currTextEntity.textLayer.apply {
+    private fun redrawTextContentAt(position: Int) {
+        val currTextContent = contents[position] as TextContent
+//        currTextContent.textLayer.apply {
 //            val currFontSize = font.size
 //            font.size = font.initialSize * scale / initialScale
 //            // Limit text font size when redraw
@@ -505,19 +498,20 @@ class MotionView : FrameLayout {
 //            if (currFontSize == font.size) return
 //        }
 
-        val newTextEntity = currTextContent.clone()
-        newTextEntity.moveCenterTo(currTextContent.currCenter)
-        newTextEntity.updateMatrix(editorInfo)
+        val newTextContent = currTextContent.clone().apply {
+            moveCenterTo(currTextContent.currCenter)
+            updateMatrix(editorInfo)
+        }
 
-        initEntityBorderAndIconBackground(newTextEntity)
+        initContentBorderAndIconBackground(newTextContent)
 
-        entities.removeAt(position)
-        entities.add(position, newTextEntity)
-        if (selectedEntity != null) selectEntity(newTextEntity, true)
+        contents.removeAt(position)
+        contents.add(position, newTextContent)
+        if (selectedContent != null) selectContent(newTextContent, true)
     }
 
-    private fun getRedrawTextEntity(currTextContent: TextContent): TextContent {
-//        currTextEntity.textLayer.apply {
+    private fun getRedrawTextContent(currTextContent: TextContent): TextContent {
+//        currTextContent.textLayer.apply {
 //            font.size = font.initialSize * scale / initialScale
 //            // Limit text font size when save image
 //            if (font.size > Font.MAX_FONT_SIZE_FOR_SAVE) font.size = Font.MAX_FONT_SIZE_FOR_SAVE
@@ -528,12 +522,12 @@ class MotionView : FrameLayout {
         return newTextContent
     }
 
-    private fun initEntityBorderAndIconBackground(entity: BaseContent) {
-        BorderUtil.initEntityBorder(entity, context, false)
-        BorderUtil.initEntityIconBackground(entity)
+    private fun initContentBorderAndIconBackground(content: BaseContent) {
+        BorderUtil.initContentBorder(content, context, false)
+        BorderUtil.initContentIconBackground(content)
     }
 
-    private fun checkTouchEventWithEntity(event: MotionEvent): BaseContent? {
+    private fun checkTouchEventWithContent(event: MotionEvent): BaseContent? {
         val px1 = event.getX(0)
         val py1 = event.getY(0)
         val px2 = event.getX(1)
@@ -541,21 +535,18 @@ class MotionView : FrameLayout {
         val slopeMainLine = calculateSlope(px1, py1, px2, py2)
         val bounceMainline = calculateAngledBounce(slopeMainLine, px1, py1, px2)
 
-        for (entity in entities.reversed()) {
-            entity.pointInLayerRect(PointF(0f, 0f), editorInfo)
-            val pAx = entity.destPoints[0]
-            val pAy = entity.destPoints[1]
-            val pBx = entity.destPoints[2]
-            val pBy = entity.destPoints[3]
-            val pCx = entity.destPoints[4]
-            val pCy = entity.destPoints[5]
-            val pDx = entity.destPoints[6]
-            val pDy = entity.destPoints[7]
+        for (content in contents.reversed()) {
+            content.pointInLayerRect(PointF(0f, 0f), editorInfo)
+            val pAx = content.destPoints[0]
+            val pAy = content.destPoints[1]
+            val pBx = content.destPoints[2]
+            val pBy = content.destPoints[3]
+            val pCx = content.destPoints[4]
+            val pCy = content.destPoints[5]
+            val pDx = content.destPoints[6]
+            val pDy = content.destPoints[7]
 
-            if (entity.pointInLayerRect(PointF(px1, py1), editorInfo)
-                || entity.pointInLayerRect(PointF(px2, py2), editorInfo)
-            )
-                return entity
+            if (content.pointInLayerRect(PointF(px1, py1), editorInfo) || content.pointInLayerRect(PointF(px2, py2), editorInfo)) return content
             else {
                 val intersectionAB: PointF
                 val intersectionBC: PointF
@@ -588,17 +579,16 @@ class MotionView : FrameLayout {
                     checkIntersection(PointF(px1, py1), PointF(px2, py2), intersectionCD, PointF(pDx, pDy), PointF(pCx, pCy)) ||
                     checkIntersection(PointF(px1, py1), PointF(px2, py2), intersectionAD, PointF(pAx, pAy), PointF(pDx, pDy)) ||
                     checkIntersection(PointF(px1, py1), PointF(px2, py2), intersectionBC, PointF(pBx, pBy), PointF(pCx, pCy))
-                ) return entity
+                ) return content
             }
         }
         return null
     }
 
     private fun handleTranslate(delta: PointF) {
-        // TODO - SHRC: Need to discuss more about entity behavior when user interact with it
-        selectedEntity?.let {
-            // Limit entity center movable area to motion view bounds
-            // Allow user move entity to motion view bounds after crop photo
+        selectedContent?.let {
+            // Limit content center movable area to motion view bounds
+            // Allow user move content to motion view bounds after crop photo
 
             val oldCenterX = it.absoluteCenterX()
             val oldCenterY = it.absoluteCenterY()
@@ -622,7 +612,7 @@ class MotionView : FrameLayout {
                 updateUI()
             }
 
-            // Limit entity movable area to motion view bounds
+            // Limit content movable area to motion view bounds
 
 //            it.matrix.mapPoints(it.destPoints, it.srcPoints)
 //            var isNeedUpdateUI = false
@@ -671,7 +661,7 @@ class MotionView : FrameLayout {
 
     private inner class ScaleListener : ScaleGestureDetector.SimpleOnScaleGestureListener() {
         override fun onScale(detector: ScaleGestureDetector): Boolean {
-            selectedEntity?.let {
+            selectedContent?.let {
                 val scaleFactorDiff = detector.scaleFactor
                 it.layer.postScale(scaleFactorDiff - 1f)
                 updateUI()
@@ -680,7 +670,7 @@ class MotionView : FrameLayout {
         }
 
         override fun onScaleBegin(detector: ScaleGestureDetector): Boolean {
-            selectedEntity.let {
+            selectedContent.let {
                 return true
             }
             return false
@@ -688,8 +678,8 @@ class MotionView : FrameLayout {
 
         override fun onScaleEnd(detector: ScaleGestureDetector) {
             super.onScaleEnd(detector)
-            if (selectedEntity is TextContent) {
-                redrawTextEntityAt(entities.indexOf(selectedEntity!!))
+            if (selectedContent is TextContent) {
+                redrawTextContentAt(contents.indexOf(selectedContent!!))
             }
         }
     }
@@ -702,16 +692,16 @@ class MotionView : FrameLayout {
             } else {
                 detector.rotationDegreesDelta
             }
-            sumRotationDegreesDelta %= BaseContent.INITIAL_ENTITY_DEGREES_DELTA
-            selectedEntity?.let {
+            sumRotationDegreesDelta %= BaseContent.INITIAL_CONTENT_DEGREES_DELTA
+            selectedContent?.let {
                 if ((it.layer.rotationInDegrees in -BaseContent.NORMAL_DEGREES_DELTA..BaseContent.NORMAL_DEGREES_DELTA
                             || (it.layer.rotationInDegrees < -BaseContent.UNUSUAL_DEGREES_DELTA || it.layer.rotationInDegrees > BaseContent.UNUSUAL_DEGREES_DELTA))
-                    && sumRotationDegreesDelta in -BaseContent.RANGE_ENTITY_DEGREES_DELTA..BaseContent.RANGE_ENTITY_DEGREES_DELTA
+                    && sumRotationDegreesDelta in -BaseContent.RANGE_CONTENT_DEGREES_DELTA..BaseContent.RANGE_CONTENT_DEGREES_DELTA
                 ) {
                     it.layer.resetRotationInDegrees()
-                    BorderUtil.initEntityBorder(it, context, true)
+                    BorderUtil.initContentBorder(it, context, true)
                 } else {
-                    BorderUtil.initEntityBorder(it, context, false)
+                    BorderUtil.initContentBorder(it, context, false)
                     it.layer.postRotate(-detector.rotationDegreesDelta)
                 }
                 updateUI()
@@ -720,15 +710,15 @@ class MotionView : FrameLayout {
         }
 
         override fun onRotateBegin(detector: RotateGestureDetector): Boolean {
-            selectedEntity?.let {
+            selectedContent?.let {
                 return true
             }
             return false
         }
 
         override fun onRotateEnd(detector: RotateGestureDetector) {
-            selectedEntity?.let {
-                BorderUtil.initEntityBorder(it, context, false)
+            selectedContent?.let {
+                BorderUtil.initContentBorder(it, context, false)
                 updateUI()
             }
         }
@@ -737,7 +727,7 @@ class MotionView : FrameLayout {
     private inner class MoveListener : MoveGestureDetector.SimpleOnMoveGestureListener() {
         lateinit var previousTouchedPoint: PointF
         override fun onMove(detector: MoveGestureDetector): Boolean {
-            selectedEntity?.let {
+            selectedContent?.let {
                 if (detector.getFocusDelta().x != 0f || detector.getFocusDelta().y != 0f) {
                     if (detector.getFocusDelta().x == 0f) {
                         if (checkValidMovement(convertToPositivePoint(previousTouchedPoint), convertToPositivePoint(PointF(1f, detector.getFocusDelta().y))))
@@ -768,14 +758,14 @@ class MotionView : FrameLayout {
             detector.mPrevEvent?.let {
                 if (findIconAtPoint(it.x, it.y) != null) return false
                 if (it.pointerCount < 2) {
-                    if (findEntityAtPoint(it.x, it.y) == null || findEntityAtPoint(it.x, it.y) != selectedEntity) {
-                        unSelectEntity()
+                    if (findContentAtPoint(it.x, it.y) == null || findContentAtPoint(it.x, it.y) != selectedContent) {
+                        unSelectContent()
                         return false
                     }
                 }
             }
 
-            selectedEntity?.let {
+            selectedContent?.let {
                 return true
             }
             return false
@@ -797,15 +787,15 @@ class MotionView : FrameLayout {
     interface MotionViewCallback {
         fun onTouch()
         fun onRelease()
-        fun onEntitySelected(entity: BaseContent?)
-        fun onEntityDeleted()
-        fun onEntityAdded()
-        fun onEntityReselected()
-        fun onEntityDoubleTap(entity: BaseContent)
-        fun onEntityUnselected()
+        fun onContentSelected(content: BaseContent?)
+        fun onContentDeleted()
+        fun onContentAdded()
+        fun onContentReselected()
+        fun onContentDoubleTap(content: BaseContent)
+        fun onContentUnselected()
     }
 
     companion object {
-        private const val MAX_ENTITIES = Int.MAX_VALUE
+        private const val MAX_CONTENTS = Int.MAX_VALUE
     }
 }

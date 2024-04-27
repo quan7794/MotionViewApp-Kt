@@ -14,7 +14,7 @@ abstract class BaseContent(
     open var layer: Layer,
     protected open var canvasWidth: Int,
     protected open var canvasHeight: Int
-) {
+) : AutoCloseable {
     var matrix = Matrix() // Apply to motion view
     private var orgPhotoMatrix = Matrix() // Apply to origin photo
     protected var holyScale = 0f
@@ -319,19 +319,15 @@ abstract class BaseContent(
     abstract fun clone(): BaseContent
     abstract fun release()
 
-//    protected fun finalize() {
-//        try {
-//            release()
-//        } catch (e: Exception){
-//            e.printStackTrace()
-//        }
-//    }
+    override fun close() {
+        release()
+    }
 
     companion object {
         const val NORMAL_DEGREES_DELTA = 5f
         const val UNUSUAL_DEGREES_DELTA = 355f
-        const val INITIAL_ENTITY_DEGREES_DELTA = 30f
-        const val RANGE_ENTITY_DEGREES_DELTA = 20f
+        const val INITIAL_CONTENT_DEGREES_DELTA = 30f
+        const val RANGE_CONTENT_DEGREES_DELTA = 20f
         const val RATIO_POINTER = 10f
     }
 }

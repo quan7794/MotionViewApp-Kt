@@ -18,7 +18,7 @@ abstract class TwoFingerGestureDetector(context: Context?) : BaseGestureDetector
     private var mCurrLen = 0f
     private var mPrevLen = 0f
 
-    var entityCenterPoint: PointF? = null
+    var contentCenterPoint: PointF? = null
 
     abstract override fun handleStartProgressEvent(actionCode: Int, event: MotionEvent)
 
@@ -31,7 +31,7 @@ abstract class TwoFingerGestureDetector(context: Context?) : BaseGestureDetector
         mPrevLen = -1f
 
         if (prev.pointerCount == 1) {
-            entityCenterPoint?.let {
+            contentCenterPoint?.let {
                 mPrevFingerDiffX = it.x - prev.getX(0)
                 mPrevFingerDiffY = it.y - prev.getY(0)
                 mCurrFingerDiffX = it.x - curr.getX(0)

@@ -26,22 +26,16 @@ import java.io.FileOutputStream
 import java.io.IOException
 import kotlin.math.abs
 
-class EpdUtil {
-}
-
 fun MotionView.importEdpTemplate(epdTemplate: Template, fontProvider: FontProvider) {
     post {
         epdTemplate.images.forEach { image ->
             val layer = image.imLayerFromEPD(epdTemplate.width, epdTemplate.height)
             val bitmap = createImageContentPlaceHolder(image.width, image.height)
-            val entity = ImageContent(layer, bitmap, R.drawable.pokecoin, width, height)
-            addEntity(entity)
+            addContent(ImageContent(layer, bitmap, R.drawable.pokecoin, width, height))
         }
-        //            addTextContent()
         epdTemplate.texts.forEach { text ->
             val textLayer = text.getTextLayer(epdTemplate.width, epdTemplate.height)
-            val textContent = TextContent(textLayer, width, height, fontProvider)
-            addEntity(textContent)
+            addContent(TextContent(textLayer, width, height, fontProvider))
         }
     }
 }
@@ -83,16 +77,13 @@ fun MotionView.addImageContent(image: Bitmap) {
     Timber.tag("AAA").d("addImageContent Entry")
     post {
         val layer = Layer()
-        val entity = ImageContent(layer, image, R.drawable.pokecoin, width, height)
-        addEntity(entity, MotionView.AddAction.TO_CENTER)
+        addContent(ImageContent(layer, image, R.drawable.pokecoin, width, height), MotionView.AddAction.TO_CENTER)
     }
 }
 
 fun MotionView.addTextContent(fontProvider: FontProvider) {
     val textLayer = createTextLayer(fontProvider.defaultFontName)
-    val textContent = TextContent(textLayer, width, height, fontProvider)
-    addEntity(textContent, MotionView.AddAction.TO_CENTER)
-
+    addContent(TextContent(textLayer, width, height, fontProvider), MotionView.AddAction.TO_CENTER)
 //        // move text sticker up so that its not hidden under keyboard
 //        val center = textEntity.absoluteCenter()
 //        center.y = center.y * 0.5f
@@ -100,7 +91,6 @@ fun MotionView.addTextContent(fontProvider: FontProvider) {
 //
 //        // redraw
 //        motionView!!.invalidate()
-
 }
 
 private fun createTextLayer(fontName: String): TextLayer {
@@ -116,27 +106,13 @@ private fun createTextLayer(fontName: String): TextLayer {
     return textLayer
 }
 
-fun MotionView.saveEpdImage(imageSize: Point, imageName: String = "exportedImage"): Bitmap {
+suspend fun MotionView.saveImage(imageSize: Point = Point(3840, 2160), imageName: String = "exportedImage"): Bitmap? {
     val rootBitmap = Bitmap.createBitmap(imageSize.x, imageSize.y, Bitmap.Config.ARGB_8888)
     val outputBm = getFinalBitmap(rootBitmap)
 
     val file = File(context.cacheDir, "$imageName.jpg")
-    try {
-        FileOutputStream(file).use { outputBm.compress(Bitmap.CompressFormat.PNG, 100, it) }
-        Toast.makeText(context, "Export done: ${file.path}", Toast.LENGTH_LONG).show()
-    } catch (ex: Exception) {
-        ex.printStackTrace()
-    }
-    return outputBm
-}
-
-suspend fun MotionView.saveImage(): Bitmap? {
-    val rootBitmap = Bitmap.createBitmap(3840, 2160, Bitmap.Config.ARGB_8888)
-    val outputBm = getFinalBitmap(rootBitmap)
-
-    val file = File(context.cacheDir, "out.jpg")
     return try {
-        withContext(Dispatchers.IO) { FileOutputStream(file).use { outputBm.compress(Bitmap.CompressFormat.PNG, 100, it) } }
+        withContext(Dispatchers.IO) { FileOutputStream(file).let { outputBm.compress(Bitmap.CompressFormat.PNG, 100, it) } }
         Toast.makeText(context, "Done: ${file.path}", Toast.LENGTH_LONG).show()
         outputBm
     } catch (ex: Exception) {
@@ -146,36 +122,35 @@ suspend fun MotionView.saveImage(): Bitmap? {
 }
 
 fun MotionView.setCurrentTextColor(@ColorInt color: Int) {
-    val textEntity1 = currentTextEntity()
-    if (textEntity1 != null) {
-        textEntity1.textLayer.font.color = color
-        textEntity1.updateEntity()
-        invalidate()
+    currentTextContent()?.let {
+        it.textLayer.font.color = color
+        it.updateContent()
     }
+    invalidate()
 }
 
 fun MotionView.setCurrentTextFont(fontName: String?) {
-    val textEntity = currentTextEntity()
-    if (textEntity != null) {
-        textEntity.textLayer.font.typefaceName = fontName
-        textEntity.updateEntity()
-        invalidate()
+    currentTextContent()?.let {
+        it.textLayer.font.typefaceName = fontName
+        it.updateContent()
     }
+    invalidate()
 }
 
-fun MotionView.currentTextEntity(): TextContent? {
-    return if (selectedEntity is TextContent) {
-        selectedEntity as TextContent
+fun MotionView.currentTextContent(): TextContent? {
+    return if (selectedContent is TextContent) {
+        selectedContent as TextContent
     } else null
 }
 
 fun MotionView.setImageForSelectedContent(newImage: Bitmap) {
-    if (selectedEntity == null || selectedEntity is TextContent) return
-    val entity = selectedEntity as ImageContent
-    entity.bmWidth = newImage.width
-    entity.bmHeight = newImage.height
-    entity.bitmap = newImage
-    entity.initInfo()
+    if (selectedContent == null || selectedContent is TextContent) return
+    (selectedContent as ImageContent).let {
+        it.bmWidth = newImage.width
+        it.bmHeight = newImage.height
+        it.bitmap = newImage
+        it.initInfo()
+    }
     invalidate()
 }
 
