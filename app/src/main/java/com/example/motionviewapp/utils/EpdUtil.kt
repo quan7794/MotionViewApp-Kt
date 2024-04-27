@@ -16,8 +16,8 @@ import com.example.motionviewapp.motionviews.model.Font
 import com.example.motionviewapp.motionviews.model.Layer
 import com.example.motionviewapp.motionviews.model.TextLayer
 import com.example.motionviewapp.motionviews.widget.MotionView
-import com.example.motionviewapp.motionviews.widget.entity.ImageEntity
-import com.example.motionviewapp.motionviews.widget.entity.TextEntity
+import com.example.motionviewapp.motionviews.widget.content.ImageContent
+import com.example.motionviewapp.motionviews.widget.content.TextContent
 import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
@@ -32,14 +32,14 @@ fun MotionView.importEdpTemplate(epdTemplate: Template, fontProvider: FontProvid
         epdTemplate.images.forEach { image ->
             val layer = image.imLayerFromEPD(epdTemplate.width, epdTemplate.height)
             val bitmap = createImageContentPlaceHolder(image.width, image.height)
-            val entity = ImageEntity(layer, bitmap, R.drawable.pokecoin, width, height)
+            val entity = ImageContent(layer, bitmap, R.drawable.pokecoin, width, height)
             addEntity(entity)
         }
         //            addTextContent()
         epdTemplate.texts.forEach { text ->
             val textLayer = text.getTextLayer(epdTemplate.width, epdTemplate.height)
-            val textEntity = TextEntity(textLayer, width, height, fontProvider)
-            addEntity(textEntity)
+            val textContent = TextContent(textLayer, width, height, fontProvider)
+            addEntity(textContent)
         }
     }
 }
@@ -81,15 +81,15 @@ fun MotionView.addImageContent(image: Bitmap) {
     Timber.tag("AAA").d("addImageContent Entry")
     post {
         val layer = Layer()
-        val entity = ImageEntity(layer, image, R.drawable.pokecoin, width, height)
+        val entity = ImageContent(layer, image, R.drawable.pokecoin, width, height)
         addEntity(entity, MotionView.AddAction.TO_CENTER)
     }
 }
 
 fun MotionView.addTextContent(fontProvider: FontProvider) {
     val textLayer = createTextLayer(fontProvider.defaultFontName)
-    val textEntity = TextEntity(textLayer, width, height, fontProvider)
-    addEntity(textEntity, MotionView.AddAction.TO_CENTER)
+    val textContent = TextContent(textLayer, width, height, fontProvider)
+    addEntity(textContent, MotionView.AddAction.TO_CENTER)
 
 //        // move text sticker up so that its not hidden under keyboard
 //        val center = textEntity.absoluteCenter()
@@ -159,20 +159,20 @@ fun MotionView.setCurrentTextFont(fontName: String?) {
     }
 }
 
-fun MotionView.currentTextEntity(): TextEntity? {
-    return if (selectedEntity is TextEntity) {
-        selectedEntity as TextEntity
+fun MotionView.currentTextEntity(): TextContent? {
+    return if (selectedEntity is TextContent) {
+        selectedEntity as TextContent
     } else null
 }
 
-fun MotionView.updateSelectedContentImage(newImage: Bitmap) {
-    if (selectedEntity == null || selectedEntity is TextEntity) return
-    val entity = selectedEntity as ImageEntity
+fun MotionView.setImageForSelectedContent(newImage: Bitmap) {
+    if (selectedEntity == null || selectedEntity is TextContent) return
+    val entity = selectedEntity as ImageContent
+    entity.bmWidth = newImage.width
+    entity.bmHeight = newImage.height
     entity.bitmap = newImage
-    entity.updateMatrix(editorInfo)
+    entity.initInfo()
     invalidate()
-    entity.updateMatrix(editorInfo)
-
 }
 
 fun Uri.getBitmap(contentResolver: ContentResolver): Bitmap? {
