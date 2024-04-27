@@ -8,4 +8,5 @@
     <string name="cancel">Cancel</string>
     <string name="select_font">Select font</string>
     <string name="save">Save</string>
+    <string name="change_selected_content_image">Change selected content image</string>
 </resources>

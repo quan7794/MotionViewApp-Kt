@@ -18,6 +18,8 @@ import com.example.motionviewapp.motionviews.model.TextLayer
 import com.example.motionviewapp.motionviews.widget.MotionView
 import com.example.motionviewapp.motionviews.widget.content.ImageContent
 import com.example.motionviewapp.motionviews.widget.content.TextContent
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
@@ -128,16 +130,18 @@ fun MotionView.saveEpdImage(imageSize: Point, imageName: String = "exportedImage
     return outputBm
 }
 
-fun MotionView.saveImage() {
+suspend fun MotionView.saveImage(): Bitmap? {
     val rootBitmap = Bitmap.createBitmap(3840, 2160, Bitmap.Config.ARGB_8888)
     val outputBm = getFinalBitmap(rootBitmap)
 
     val file = File(context.cacheDir, "out.jpg")
-    try {
-        FileOutputStream(file).use { outputBm.compress(Bitmap.CompressFormat.PNG, 100, it) }
+    return try {
+        withContext(Dispatchers.IO) { FileOutputStream(file).use { outputBm.compress(Bitmap.CompressFormat.PNG, 100, it) } }
         Toast.makeText(context, "Done: ${file.path}", Toast.LENGTH_LONG).show()
+        outputBm
     } catch (ex: Exception) {
         ex.printStackTrace()
+        null
     }
 }
 

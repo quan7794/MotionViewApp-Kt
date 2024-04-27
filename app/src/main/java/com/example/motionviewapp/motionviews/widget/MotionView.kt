@@ -5,6 +5,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.PointF
 import android.graphics.RectF
 import android.util.AttributeSet
@@ -14,6 +15,7 @@ import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.View.OnTouchListener
 import android.widget.FrameLayout
+import androidx.annotation.ColorInt
 import androidx.core.view.GestureDetectorCompat
 import com.example.motionviewapp.R
 import com.example.motionviewapp.motionviews.model.EditorInfo
@@ -46,6 +48,7 @@ class MotionView : FrameLayout {
     private lateinit var motionViewRectF: RectF
     var editorInfo = EditorInfo()
     var selectedEntity: BaseContent? = null
+    @ColorInt private var themeColor: Int = Color.WHITE
 
     constructor(context: Context) : super(context) {
         init(context)
@@ -81,7 +84,17 @@ class MotionView : FrameLayout {
 
     override fun dispatchDraw(canvas: Canvas) {
         super.dispatchDraw(canvas)
+        drawThemeColor(canvas)
         drawAllEntities(canvas)
+    }
+
+    fun setThemeColor(@ColorInt color: Int) {
+        themeColor = color
+        invalidate()
+    }
+
+    private fun drawThemeColor(canvas: Canvas, color: Int = themeColor) {
+        canvas.drawColor(color)
     }
 
     override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
@@ -134,6 +147,7 @@ class MotionView : FrameLayout {
     fun getFinalBitmap(bitmap: Bitmap): Bitmap {
         selectEntity(null, false)
         val canvas = Canvas(bitmap)
+        drawThemeColor(canvas)
         drawEntitiesForSave(canvas, bitmap)
         return bitmap
     }

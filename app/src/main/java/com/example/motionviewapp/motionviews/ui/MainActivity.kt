@@ -4,12 +4,16 @@ import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.ImageView
+import androidx.annotation.ColorInt
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.canhub.cropper.CropImageContract
 import com.canhub.cropper.CropImageContractOptions
 import com.canhub.cropper.CropImageOptions
@@ -36,6 +40,7 @@ import com.example.motionviewapp.utils.setCurrentTextColor
 import com.example.motionviewapp.utils.setImageForSelectedContent
 import com.flask.colorpicker.ColorPickerView
 import com.flask.colorpicker.builder.ColorPickerDialogBuilder
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 class MainActivity : AppCompatActivity(), OnTextLayerCallback {
@@ -118,8 +123,14 @@ class MainActivity : AppCompatActivity(), OnTextLayerCallback {
                     )
                 )
             )
-
         }
+        findViewById<View>(R.id.theme1).setOnClickListener { view: View? -> changeTheme(Color.DKGRAY) }
+        findViewById<View>(R.id.theme2).setOnClickListener { view: View? -> changeTheme(Color.BLUE) }
+        findViewById<View>(R.id.theme3).setOnClickListener { view: View? -> changeTheme(Color.MAGENTA) }
+    }
+
+    private fun changeTheme(@ColorInt color: Int) {
+        motionView!!.setThemeColor(color)
     }
 
     private val cropImage = registerForActivityResult(CropImageContract()) { result ->
@@ -209,7 +220,9 @@ class MainActivity : AppCompatActivity(), OnTextLayerCallback {
                 startTextEntityEditing()
             }
 
-            R.id.main_save -> motionView?.saveImage()
+            R.id.main_save -> lifecycleScope.launch { motionView?.saveImage()?.let {
+                findViewById<ImageView>(R.id.ivOutput).setImageBitmap(it)
+            } }
         }
         return super.onOptionsItemSelected(item)
     }
