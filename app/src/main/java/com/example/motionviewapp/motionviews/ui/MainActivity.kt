@@ -43,6 +43,7 @@ import com.flask.colorpicker.ColorPickerView
 import com.flask.colorpicker.builder.ColorPickerDialogBuilder
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.io.File
 
 class MainActivity : AppCompatActivity(), OnTextLayerCallback {
     protected var motionView: MotionView? = null
@@ -223,8 +224,8 @@ class MainActivity : AppCompatActivity(), OnTextLayerCallback {
             }
 
             R.id.main_save -> lifecycleScope.launch {
-                motionView?.saveImage()?.let {
-                    findViewById<ImageView>(R.id.ivOutput).setImageBitmap(it)
+                motionView?.saveImage()?.let { filePath ->
+                    findViewById<ImageView>(R.id.ivOutput).setImageBitmap(BitmapFactory.decodeFile(File(filePath).absolutePath))
                 }
             }
         }

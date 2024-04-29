@@ -4,16 +4,17 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
 import com.example.motionviewapp.motionviews.model.Layer
+import com.example.motionviewapp.utils.copyBitmap
 import timber.log.Timber
 import kotlin.math.min
 
 
 class ImageContent(
-    layer: Layer,
+    override var layer: Layer,
     var bitmap: Bitmap,
     val resId: Int,
-    canvasWidth: Int,
-    canvasHeight: Int,
+    override var canvasWidth: Int,
+    override var canvasHeight: Int,
 ) : BaseContent(layer, canvasWidth, canvasHeight) {
 
     override var bmWidth = bitmap.width
@@ -57,7 +58,8 @@ class ImageContent(
     }
 
     override fun clone(): BaseContent {
-        return ImageContent(layer.clone(), bitmap, resId, canvasWidth, canvasHeight)
+        val bm = bitmap.copyBitmap()
+        return ImageContent(layer.clone(), bm, resId, canvasWidth, canvasHeight)
     }
 
     override fun release() {

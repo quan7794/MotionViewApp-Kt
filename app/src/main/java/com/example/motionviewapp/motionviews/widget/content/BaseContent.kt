@@ -250,6 +250,7 @@ abstract class BaseContent(
         canvas.save()
         drawContent(canvas, null)
         canvas.restore()
+        release()
     }
 
     private fun drawSelectedBg(canvas: Canvas) {

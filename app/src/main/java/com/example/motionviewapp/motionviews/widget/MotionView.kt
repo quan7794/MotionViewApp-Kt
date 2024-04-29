@@ -217,13 +217,15 @@ class MotionView : FrameLayout {
                     matrix.setValues(scaledMatrixInfo)
                     updateLayer()
                 }
-                tempContent = getRedrawTextContent(tempContent)
-                tempContent.drawForSave(canvas, editorInfo)
+                getRedrawTextContent(tempContent).use {
+                    it.drawForSave(canvas, editorInfo)
+                }
             } else {
-                var tempContent = contents[i].clone() as ImageContent
-                tempContent.matrix.setValues(scaledMatrixInfo)
+                (contents[i].clone() as ImageContent).use {
+                    it.matrix.setValues(scaledMatrixInfo)
 //                saveImContent = redrawImageContent(tempContent) //todo: create high resolution later
-                tempContent.drawForSave(canvas, editorInfo)
+                    it.drawForSave(canvas, editorInfo)
+                }
             }
         }
     }

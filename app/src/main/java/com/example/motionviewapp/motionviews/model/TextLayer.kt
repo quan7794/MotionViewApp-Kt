@@ -2,7 +2,7 @@ package com.example.motionviewapp.motionviews.model
 
 import com.example.motionviewapp.motionviews.model.TextLayer.Limits.Companion.DEFAULT_TEXT
 
-class TextLayer(
+data class TextLayer(
     var text: String = DEFAULT_TEXT,
     var font: Font = Font(),
 ) : Layer() {

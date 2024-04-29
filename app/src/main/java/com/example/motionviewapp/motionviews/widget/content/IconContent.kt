@@ -5,7 +5,7 @@ import android.graphics.Matrix
 import android.graphics.PointF
 import androidx.annotation.IntDef
 
-class IconContent(val bitmapIcon: Bitmap, @Gravity val gravity: Int) {
+data class IconContent(val bitmapIcon: Bitmap, @Gravity val gravity: Int) {
     @IntDef(LEFT_TOP, RIGHT_TOP, LEFT_BOTTOM, RIGHT_BOTTOM)
     @Retention(AnnotationRetention.SOURCE)
     annotation class Gravity

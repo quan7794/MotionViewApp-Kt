@@ -106,17 +106,19 @@ private fun createTextLayer(fontName: String): TextLayer {
     return textLayer
 }
 
-suspend fun MotionView.saveImage(imageSize: Point = Point(3840, 2160), imageName: String = "exportedImage"): Bitmap? {
+suspend fun MotionView.saveImage(imageSize: Point = Point(3840, 2160), imageName: String = "exportedImage"): String? {
     val rootBitmap = Bitmap.createBitmap(imageSize.x, imageSize.y, Bitmap.Config.ARGB_8888)
     val outputBm = getFinalBitmap(rootBitmap)
 
     val file = File(context.cacheDir, "$imageName.jpg")
     return try {
-        withContext(Dispatchers.IO) { FileOutputStream(file).let { outputBm.compress(Bitmap.CompressFormat.PNG, 100, it) } }
+        withContext(Dispatchers.IO) { FileOutputStream(file).use { outputBm.compress(Bitmap.CompressFormat.PNG, 100, it) } }
         Toast.makeText(context, "Done: ${file.path}", Toast.LENGTH_LONG).show()
-        outputBm
+        rootBitmap.recycle()
+        file.path
     } catch (ex: Exception) {
         ex.printStackTrace()
+        rootBitmap.recycle()
         null
     }
 }
