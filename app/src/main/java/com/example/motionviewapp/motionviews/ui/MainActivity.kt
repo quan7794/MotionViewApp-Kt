@@ -6,6 +6,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -224,7 +225,9 @@ class MainActivity : AppCompatActivity(), OnTextLayerCallback {
             }
 
             R.id.main_save -> lifecycleScope.launch {
+                Log.i("AAA","SAVE_IMAGE START")
                 motionView?.saveImage()?.let { filePath ->
+                    Log.i("AAA","SAVE_IMAGE DONE $filePath")
                     findViewById<ImageView>(R.id.ivOutput).setImageBitmap(BitmapFactory.decodeFile(File(filePath).absolutePath))
                 }
             }

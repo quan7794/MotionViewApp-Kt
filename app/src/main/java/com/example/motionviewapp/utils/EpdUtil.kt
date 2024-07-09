@@ -15,6 +15,7 @@ import com.example.motionviewapp.ePaper.template.TextTemplate
 import com.example.motionviewapp.motionviews.model.Font
 import com.example.motionviewapp.motionviews.model.Layer
 import com.example.motionviewapp.motionviews.model.TextLayer
+import com.example.motionviewapp.motionviews.ui.AndroidBmpUtil
 import com.example.motionviewapp.motionviews.widget.MotionView
 import com.example.motionviewapp.motionviews.widget.content.ImageContent
 import com.example.motionviewapp.motionviews.widget.content.TextContent
@@ -106,13 +107,15 @@ private fun createTextLayer(fontName: String): TextLayer {
     return textLayer
 }
 
-suspend fun MotionView.saveImage(imageSize: Point = Point(3840, 2160), imageName: String = "exportedImage"): String? {
+suspend fun MotionView.saveImage(imageSize: Point = Point(1920, 1080), imageName: String = "exportedImage"): String? {
     val rootBitmap = Bitmap.createBitmap(imageSize.x, imageSize.y, Bitmap.Config.ARGB_8888)
     val outputBm = getFinalBitmap(rootBitmap)
+    val bmByte = AndroidBmpUtil().getBmpByte(outputBm)
 
-    val file = File(context.cacheDir, "$imageName.jpg")
+    val file = File(context.cacheDir, "$imageName.bmp")
     return try {
-        withContext(Dispatchers.IO) { FileOutputStream(file).use { outputBm.compress(Bitmap.CompressFormat.PNG, 100, it) } }
+//        withContext(Dispatchers.IO) { FileOutputStream(file).use { outputBm.compress(Bitmap.CompressFormat.PNG, 100, it) } }
+        withContext(Dispatchers.IO) { FileOutputStream(file).use { it.write(bmByte) } }
         Toast.makeText(context, "Done: ${file.path}", Toast.LENGTH_LONG).show()
         rootBitmap.recycle()
         file.path
